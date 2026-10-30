@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 
 type Props = {
     brandName: string;
+    supportTeamName?: string;
     conversation: ConversationSummary;
     messages: ChatMessage[];
     announcement: Announcement;
@@ -31,6 +32,7 @@ type Props = {
 
 export default function CustomerSupport({
     brandName,
+    supportTeamName = 'Support Team',
     conversation,
     messages: initialMessages,
     announcement,
@@ -83,8 +85,8 @@ export default function CustomerSupport({
             return true;
         }
 
-        return 'Support Team'.toLowerCase().includes(search.toLowerCase());
-    }, [search]);
+        return supportTeamName.toLowerCase().includes(search.toLowerCase());
+    }, [search, supportTeamName]);
 
     const sendMessage = async ({ body, attachment }: { body: string; attachment: File | null }) => {
         const form = new FormData();
@@ -122,7 +124,7 @@ export default function CustomerSupport({
 
     return (
         <ChatShell>
-            <Head title={`${brandName} Support`} />
+            <Head title={brandName} />
 
             <aside
                 className={cn(
@@ -165,7 +167,7 @@ export default function CustomerSupport({
                         <ConversationListItem
                             conversation={conversation}
                             active
-                            title="Support Team"
+                            title={supportTeamName}
                             onClick={() => setMobileShowChat(true)}
                         />
                     )}
@@ -195,10 +197,10 @@ export default function CustomerSupport({
                             ←
                         </button>
                         <div className="flex size-10 items-center justify-center rounded-full bg-[#dfe5e7] font-semibold text-[#54656f] dark:bg-[#6b7c85] dark:text-white">
-                            {initials('Support Team')}
+                            {initials(supportTeamName)}
                         </div>
                         <div className="min-w-0">
-                            <div className="truncate font-medium">Support Team</div>
+                            <div className="truncate font-medium">{supportTeamName}</div>
                             <div className="flex items-center gap-1.5 text-xs text-[var(--wa-muted)]">
                                 <span
                                     className={cn(

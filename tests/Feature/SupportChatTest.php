@@ -64,6 +64,7 @@ test('admin can update support settings', function () {
             'ai_reply_timeout_seconds' => 120,
             'ai_system_prompt' => 'Be helpful.',
             'brand_name' => 'BestDataGH',
+            'support_team_name' => 'BestData Support',
             'announcement_title' => 'Pinned Announcement',
             'announcement_body' => 'Welcome',
             'announcement_active' => true,
@@ -71,6 +72,7 @@ test('admin can update support settings', function () {
         ->assertRedirect();
 
     expect(Setting::getValue('brand_name'))->toBe('BestDataGH')
+        ->and(Setting::getValue('support_team_name'))->toBe('BestData Support')
         ->and(Setting::getValue('ai_enabled', false))->toBeTrue()
         ->and(Setting::getValue('ai_trigger_mode'))->toBe('agents_offline');
 });

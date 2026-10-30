@@ -46,6 +46,11 @@ class SupportSettings
         return (string) Setting::getValue('brand_name', (string) config('support.brand_name'));
     }
 
+    public function supportTeamName(): string
+    {
+        return (string) Setting::getValue('support_team_name', (string) config('support.support_team_name'));
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -60,6 +65,7 @@ class SupportSettings
             'ai_reply_timeout_seconds' => $this->aiReplyTimeoutSeconds(),
             'ai_system_prompt' => $this->aiSystemPrompt(),
             'brand_name' => $this->brandName(),
+            'support_team_name' => $this->supportTeamName(),
         ];
     }
 
@@ -77,6 +83,7 @@ class SupportSettings
             'ai_reply_timeout_seconds',
             'ai_system_prompt',
             'brand_name',
+            'support_team_name',
         ];
 
         foreach ($allowed as $key) {

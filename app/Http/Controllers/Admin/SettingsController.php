@@ -32,6 +32,7 @@ class SettingsController extends Controller
             'ai_reply_timeout_seconds' => ['required', 'integer', 'min:5', 'max:3600'],
             'ai_system_prompt' => ['required', 'string', 'max:5000'],
             'brand_name' => ['required', 'string', 'max:120'],
+            'support_team_name' => ['required', 'string', 'max:120'],
             'announcement_title' => ['required', 'string', 'max:120'],
             'announcement_body' => ['required', 'string', 'max:5000'],
             'announcement_active' => ['sometimes'],
@@ -46,6 +47,7 @@ class SettingsController extends Controller
             'ai_reply_timeout_seconds' => $data['ai_reply_timeout_seconds'],
             'ai_system_prompt' => $data['ai_system_prompt'],
             'brand_name' => $data['brand_name'],
+            'support_team_name' => $data['support_team_name'],
         ]);
 
         $announcement = Announcement::active() ?? new Announcement;

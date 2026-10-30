@@ -40,6 +40,7 @@ class SupportController extends Controller
 
         return Inertia::render('customer/support', [
             'brandName' => $settings->brandName(),
+            'supportTeamName' => $settings->supportTeamName(),
             'conversation' => $chat->serializeConversation($conversation, $user),
             'messages' => $messages,
             'announcement' => Announcement::active(),

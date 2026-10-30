@@ -44,11 +44,26 @@ export default function AdminSettings({ settings, announcement, brandName }: Pro
                     {({ processing, errors }) => (
                         <>
                             <section className="space-y-4">
-                                <h2 className="text-lg font-medium">Brand</h2>
+                                <h2 className="text-lg font-medium">Site</h2>
                                 <div className="space-y-2">
-                                    <Label htmlFor="brand_name">Brand name</Label>
+                                    <Label htmlFor="brand_name">Site name</Label>
                                     <Input id="brand_name" name="brand_name" defaultValue={settings.brand_name} />
+                                    <p className="text-xs text-[var(--wa-muted)]">
+                                        Shown in the browser title, login screen, and chat headers.
+                                    </p>
                                     <InputError message={errors.brand_name} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="support_team_name">Support chat name</Label>
+                                    <Input
+                                        id="support_team_name"
+                                        name="support_team_name"
+                                        defaultValue={settings.support_team_name}
+                                    />
+                                    <p className="text-xs text-[var(--wa-muted)]">
+                                        The contact name customers see in chat (e.g. Support Team).
+                                    </p>
+                                    <InputError message={errors.support_team_name} />
                                 </div>
                             </section>
 

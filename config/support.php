@@ -3,6 +3,7 @@
 return [
 
     'brand_name' => env('SUPPORT_BRAND_NAME', 'Support'),
+    'support_team_name' => env('SUPPORT_TEAM_NAME', 'Support Team'),
 
     'otp' => [
         'enabled' => env('SUPPORT_OTP_ENABLED', true),

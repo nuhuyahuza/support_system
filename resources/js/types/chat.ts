@@ -52,4 +52,5 @@ export type SupportSettings = {
     ai_reply_timeout_seconds: number;
     ai_system_prompt: string;
     brand_name: string;
+    support_team_name: string;
 };

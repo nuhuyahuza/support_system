@@ -247,7 +247,7 @@ export default function AdminInbox({
 
     return (
         <ChatShell>
-            <Head title={`${brandName} Admin`} />
+            <Head title={`${brandName} · Inbox`} />
 
             <aside
                 className={cn(

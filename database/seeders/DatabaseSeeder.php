@@ -45,6 +45,7 @@ class DatabaseSeeder extends Seeder
             'ai_reply_timeout_seconds' => (string) config('support.ai.reply_timeout_seconds'),
             'ai_system_prompt' => (string) config('support.ai.system_prompt'),
             'brand_name' => (string) config('support.brand_name'),
+            'support_team_name' => (string) config('support.support_team_name'),
         ];
 
         foreach ($defaults as $key => $value) {

@@ -31,7 +31,7 @@ export default function CustomerLogin({
                     <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-[var(--wa-accent)] text-2xl font-bold text-white">
                         {brandName.slice(0, 1).toUpperCase()}
                     </div>
-                    <h1 className="text-2xl font-semibold">{brandName} Support</h1>
+                    <h1 className="text-2xl font-semibold">{brandName}</h1>
                     <p className="mt-2 text-sm text-[var(--wa-muted)]">
                         {isNameStep
                             ? 'What should we call you?'
