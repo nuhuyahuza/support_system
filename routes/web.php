@@ -25,17 +25,28 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/support/login', [CustomerAuthController::class, 'create'])->name('customer.login');
-    Route::post('/support/login/phone', [CustomerAuthController::class, 'storePhone'])->name('customer.login.phone');
-    Route::post('/support/login/back', [CustomerAuthController::class, 'backToPhone'])->name('customer.login.back');
-    Route::post('/support/login', [CustomerAuthController::class, 'store'])->name('customer.login.store');
-    Route::get('/support/verify', [CustomerAuthController::class, 'showVerify'])->name('customer.verify');
-    Route::post('/support/verify', [CustomerAuthController::class, 'verify'])->name('customer.verify.store');
+    Route::get('/login', [CustomerAuthController::class, 'create'])->name('customer.login');
+    Route::post('/login/phone', [CustomerAuthController::class, 'storePhone'])->name('customer.login.phone');
+    Route::post('/login/back', [CustomerAuthController::class, 'backToPhone'])->name('customer.login.back');
+    Route::post('/login', [CustomerAuthController::class, 'store'])->name('customer.login.store');
+    Route::get('/verify', [CustomerAuthController::class, 'showVerify'])->name('customer.verify');
+    Route::post('/verify', [CustomerAuthController::class, 'verify'])->name('customer.verify.store');
+
+    // Legacy customer auth URLs (pre-/login move)
+    Route::get('/support/login', fn () => redirect('/login'));
+    Route::post('/support/login/phone', [CustomerAuthController::class, 'storePhone']);
+    Route::post('/support/login/back', [CustomerAuthController::class, 'backToPhone']);
+    Route::post('/support/login', [CustomerAuthController::class, 'store']);
+    Route::get('/support/verify', fn () => redirect('/verify'));
+    Route::post('/support/verify', [CustomerAuthController::class, 'verify']);
 });
 
-Route::post('/support/logout', [CustomerAuthController::class, 'destroy'])
+Route::post('/logout', [CustomerAuthController::class, 'destroy'])
     ->middleware('auth')
     ->name('customer.logout');
+
+Route::post('/support/logout', [CustomerAuthController::class, 'destroy'])
+    ->middleware('auth');
 
 Route::post('/presence', [PresenceController::class, 'update'])
     ->middleware('auth')

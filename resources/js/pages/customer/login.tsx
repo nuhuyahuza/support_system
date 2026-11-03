@@ -47,7 +47,7 @@ export default function CustomerLogin({
 
                 {!isNameStep ? (
                     <Form
-                        action="/support/login/phone"
+                        action="/login/phone"
                         method="post"
                         className="rounded-2xl bg-[var(--wa-panel)] p-6 shadow-lg"
                     >
@@ -91,7 +91,7 @@ export default function CustomerLogin({
                     </Form>
                 ) : (
                     <Form
-                        action="/support/login"
+                        action="/login"
                         method="post"
                         className="rounded-2xl bg-[var(--wa-panel)] p-6 shadow-lg"
                     >
@@ -137,7 +137,7 @@ export default function CustomerLogin({
                                 <button
                                     type="button"
                                     className="w-full text-center text-sm text-[var(--wa-muted)] underline"
-                                    onClick={() => router.post('/support/login/back')}
+                                    onClick={() => router.post('/login/back')}
                                 >
                                     Use a different number
                                 </button>
@@ -147,7 +147,7 @@ export default function CustomerLogin({
                 )}
 
                 <p className="mt-6 text-center text-xs text-[var(--wa-muted)]">
-                    Staff? <a href="/login" className="text-[var(--wa-accent)] underline">Sign in here</a>
+                    Staff? <a href="/admin/login" className="text-[var(--wa-accent)] underline">Sign in here</a>
                 </p>
             </div>
         </ChatShell>

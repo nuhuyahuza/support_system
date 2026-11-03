@@ -27,7 +27,7 @@ export default function CustomerVerify({ phone, status, brandName }: Props) {
                 </div>
 
                 <Form
-                    action="/support/verify"
+                    action="/verify"
                     method="post"
                     className="rounded-2xl bg-[var(--wa-panel)] p-6 shadow-lg"
                 >
@@ -55,7 +55,7 @@ export default function CustomerVerify({ phone, status, brandName }: Props) {
                                 {processing && <Spinner />}
                                 Verify & chat
                             </Button>
-                            <a href="/support/login" className="block text-center text-sm text-[var(--wa-muted)] underline">
+                            <a href="/login" className="block text-center text-sm text-[var(--wa-muted)] underline">
                                 Use a different number
                             </a>
                         </div>

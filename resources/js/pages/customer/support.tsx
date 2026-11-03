@@ -144,7 +144,7 @@ export default function CustomerSupport({
                         <IconButton>
                             <Search className="size-5" />
                         </IconButton>
-                        <IconButton onClick={() => router.post('/support/logout')}>
+                        <IconButton onClick={() => router.post('/logout')}>
                             <EllipsisVertical className="size-5" />
                         </IconButton>
                     </div>

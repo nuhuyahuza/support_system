@@ -10,19 +10,19 @@ beforeEach(function () {
 });
 
 test('customer phone must be a 10 digit ghana number', function () {
-    $this->post('/support/login/phone', [
+    $this->post('/login/phone', [
         'phone' => 'abc0244123',
     ])->assertSessionHasErrors('phone');
 
-    $this->post('/support/login/phone', [
+    $this->post('/login/phone', [
         'phone' => '024412345',
     ])->assertSessionHasErrors('phone');
 
-    $this->post('/support/login/phone', [
+    $this->post('/login/phone', [
         'phone' => '02441234567',
     ])->assertSessionHasErrors('phone');
 
-    $this->post('/support/login/phone', [
+    $this->post('/login/phone', [
         'phone' => '0244123456',
     ])->assertRedirect(route('customer.login'));
 });
@@ -30,11 +30,11 @@ test('customer phone must be a 10 digit ghana number', function () {
 test('customer login is a phone then name multi step flow', function () {
     Setting::setValue('otp_enabled', false);
 
-    $this->post('/support/login/phone', [
+    $this->post('/login/phone', [
         'phone' => '0244111222',
     ])->assertRedirect(route('customer.login'));
 
-    $this->get('/support/login')
+    $this->get('/login')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('customer/login')
@@ -42,7 +42,7 @@ test('customer login is a phone then name multi step flow', function () {
             ->where('phone', '0244111222')
         );
 
-    $this->post('/support/login', [
+    $this->post('/login', [
         'name' => 'Ama Customer',
     ])->assertRedirect(route('support.index'));
 
@@ -60,11 +60,11 @@ test('customer receives otp challenge when otp is enabled', function () {
 
     Log::shouldReceive('info')->atLeast()->once();
 
-    $this->post('/support/login/phone', [
+    $this->post('/login/phone', [
         'phone' => '0244333444',
     ])->assertRedirect(route('customer.login'));
 
-    $this->post('/support/login', [
+    $this->post('/login', [
         'name' => 'Kofi Customer',
     ])->assertRedirect(route('customer.verify'));
 
@@ -74,30 +74,35 @@ test('customer receives otp challenge when otp is enabled', function () {
 test('same phone restores previous customer chat access', function () {
     Setting::setValue('otp_enabled', false);
 
-    $this->post('/support/login/phone', ['phone' => '0244555666']);
-    $this->post('/support/login', ['name' => 'First Name'])
+    $this->post('/login/phone', ['phone' => '0244555666']);
+    $this->post('/login', ['name' => 'First Name'])
         ->assertRedirect(route('support.index'));
 
     $userId = auth()->id();
     $conversationId = auth()->user()->conversation->id;
 
-    $this->post('/support/logout');
+    $this->post('/logout');
 
-    $this->post('/support/login/phone', ['phone' => '0244555666'])
+    $this->post('/login/phone', ['phone' => '0244555666'])
         ->assertRedirect(route('customer.login'));
 
-    $this->get('/support/login')
+    $this->get('/login')
         ->assertInertia(fn ($page) => $page
             ->where('step', 'name')
             ->where('suggestedName', 'First Name')
         );
 
-    $this->post('/support/login', ['name' => 'Updated Name'])
+    $this->post('/login', ['name' => 'Updated Name'])
         ->assertRedirect(route('support.index'));
 
     expect(auth()->id())->toBe($userId)
         ->and(auth()->user()->name)->toBe('Updated Name')
         ->and(auth()->user()->conversation->id)->toBe($conversationId);
+});
+
+test('legacy support login path redirects to login', function () {
+    $this->get('/support/login')
+        ->assertRedirect('/login');
 });
 
 test('support settings service reads configurable values', function () {
