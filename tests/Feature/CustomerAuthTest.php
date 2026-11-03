@@ -105,6 +105,16 @@ test('legacy support login path redirects to login', function () {
         ->assertRedirect('/login');
 });
 
+test('guests visiting support are sent to customer login not admin login', function () {
+    $this->get('/support')
+        ->assertRedirect('/login');
+});
+
+test('guests visiting admin are sent to staff login', function () {
+    $this->get('/admin/chats')
+        ->assertRedirect('/admin/login');
+});
+
 test('support settings service reads configurable values', function () {
     Setting::setValue('ai_enabled', true);
     Setting::setValue('ai_trigger_mode', 'reply_timeout');

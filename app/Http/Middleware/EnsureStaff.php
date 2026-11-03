@@ -17,7 +17,7 @@ class EnsureStaff
                 return redirect()->route('support.index');
             }
 
-            return redirect()->route('login');
+            return redirect('/admin/login');
         }
 
         return $next($request);

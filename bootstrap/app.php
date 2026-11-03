@@ -22,6 +22,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // generates http:// redirect targets and Inertia XHR visits fail (status 0).
         $middleware->trustProxies(at: '*');
 
+        // Fortify owns the named route `login` at /admin/login. Without this,
+        // guests hitting /support (auth middleware) get the staff email login.
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('admin', 'admin/*', 'settings', 'settings/*')) {
+                return '/admin/login';
+            }
+
+            return '/login';
+        });
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,
