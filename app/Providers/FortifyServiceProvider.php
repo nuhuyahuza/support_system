@@ -3,13 +3,18 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Responses\LoginResponse;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -20,7 +25,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
     }
 
     /**
@@ -39,6 +44,30 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
+
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::query()
+                ->where(Fortify::username(), $request->input(Fortify::username()))
+                ->first();
+
+            if (! $user || ! $user->password || ! Hash::check($request->input('password'), $user->password)) {
+                return null;
+            }
+
+            if (! $user->isStaff()) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => ['These credentials do not match our records.'],
+                ]);
+            }
+
+            if (! $user->is_active) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => ['This account has been deactivated.'],
+                ]);
+            }
+
+            return $user;
+        });
     }
 
     /**

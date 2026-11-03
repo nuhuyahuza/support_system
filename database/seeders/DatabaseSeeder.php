@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
             'ai_system_prompt' => (string) config('support.ai.system_prompt'),
             'brand_name' => (string) config('support.brand_name'),
             'support_team_name' => (string) config('support.support_team_name'),
+            'agent_ui_mode' => (string) config('support.agent_ui_mode', 'dashboard'),
         ];
 
         foreach ($defaults as $key => $value) {

@@ -33,6 +33,8 @@ test('customer can send a message in their conversation', function () {
 });
 
 test('agent can view inbox and reply', function () {
+    Setting::setValue('agent_ui_mode', 'whatsapp');
+
     $auth = app(CustomerAuthService::class);
     $customer = $auth->findOrCreateCustomer('0244999000', 'Inbox Customer');
     $conversation = $customer->conversation;
@@ -160,6 +162,8 @@ test('message poll returns receipt updates for pending outbound ids', function (
 });
 
 test('opening inbox delivers pending customer messages without reading inactive chats', function () {
+    Setting::setValue('agent_ui_mode', 'whatsapp');
+
     $auth = app(CustomerAuthService::class);
     $customerA = $auth->findOrCreateCustomer('0244777001', 'Inbox A');
     $customerB = $auth->findOrCreateCustomer('0244777002', 'Inbox B');
@@ -206,6 +210,7 @@ test('admin can update support settings', function () {
             'ai_system_prompt' => 'Be helpful.',
             'brand_name' => 'BestDataGH',
             'support_team_name' => 'BestData Support',
+            'agent_ui_mode' => 'whatsapp',
             'announcement_title' => 'Pinned Announcement',
             'announcement_body' => 'Welcome',
             'announcement_active' => true,
@@ -215,5 +220,6 @@ test('admin can update support settings', function () {
     expect(Setting::getValue('brand_name'))->toBe('BestDataGH')
         ->and(Setting::getValue('support_team_name'))->toBe('BestData Support')
         ->and(Setting::getValue('ai_enabled', false))->toBeTrue()
-        ->and(Setting::getValue('ai_trigger_mode'))->toBe('agents_offline');
+        ->and(Setting::getValue('ai_trigger_mode'))->toBe('agents_offline')
+        ->and(Setting::getValue('agent_ui_mode'))->toBe('whatsapp');
 });

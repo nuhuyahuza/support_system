@@ -45,6 +45,8 @@ class HandleInertiaRequests extends Middleware
             'name' => $brandName,
             'brandName' => $brandName,
             'supportTeamName' => $settings->supportTeamName(),
+            'agentUiMode' => $settings->agentUiMode(),
+            'isAdmin' => (bool) $user?->isAdmin(),
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
@@ -52,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'role' => $user->role->value,
+                    'is_active' => $user->is_active,
                 ] : null,
             ],
             'flash' => [

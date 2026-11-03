@@ -51,6 +51,13 @@ class SupportSettings
         return (string) Setting::getValue('support_team_name', (string) config('support.support_team_name'));
     }
 
+    public function agentUiMode(): string
+    {
+        $mode = (string) Setting::getValue('agent_ui_mode', (string) config('support.agent_ui_mode', 'dashboard'));
+
+        return in_array($mode, ['dashboard', 'whatsapp'], true) ? $mode : 'dashboard';
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -66,6 +73,7 @@ class SupportSettings
             'ai_system_prompt' => $this->aiSystemPrompt(),
             'brand_name' => $this->brandName(),
             'support_team_name' => $this->supportTeamName(),
+            'agent_ui_mode' => $this->agentUiMode(),
         ];
     }
 
@@ -84,6 +92,7 @@ class SupportSettings
             'ai_system_prompt',
             'brand_name',
             'support_team_name',
+            'agent_ui_mode',
         ];
 
         foreach ($allowed as $key) {

@@ -88,6 +88,10 @@ class CustomerAuthService
                 throw new InvalidArgumentException('This phone number belongs to a staff account.');
             }
 
+            if ($user->is_active === false) {
+                throw new InvalidArgumentException('This account has been deactivated. Contact support.');
+            }
+
             $user->update(['name' => $name]);
 
             return $user->fresh();
@@ -99,6 +103,7 @@ class CustomerAuthService
             'role' => UserRole::Customer,
             'email' => null,
             'password' => null,
+            'is_active' => true,
         ]);
 
         Conversation::query()->create([
@@ -107,12 +112,12 @@ class CustomerAuthService
             'last_message_at' => now(),
         ]);
 
-        return $user;
+        return $user->fresh();
     }
 
     public function login(User $user): void
     {
-        Auth::login($user, true);
+        Auth::login($user->fresh() ?? $user, true);
         $user->update([
             'is_online' => true,
             'last_seen_at' => now(),

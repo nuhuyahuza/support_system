@@ -33,6 +33,7 @@ class SettingsController extends Controller
             'ai_system_prompt' => ['required', 'string', 'max:5000'],
             'brand_name' => ['required', 'string', 'max:120'],
             'support_team_name' => ['required', 'string', 'max:120'],
+            'agent_ui_mode' => ['required', 'in:dashboard,whatsapp'],
             'announcement_title' => ['required', 'string', 'max:120'],
             'announcement_body' => ['required', 'string', 'max:5000'],
             'announcement_active' => ['sometimes'],
@@ -48,6 +49,7 @@ class SettingsController extends Controller
             'ai_system_prompt' => $data['ai_system_prompt'],
             'brand_name' => $data['brand_name'],
             'support_team_name' => $data['support_team_name'],
+            'agent_ui_mode' => $data['agent_ui_mode'],
         ]);
 
         $announcement = Announcement::active() ?? new Announcement;

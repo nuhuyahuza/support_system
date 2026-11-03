@@ -5,6 +5,17 @@ return [
     'brand_name' => env('SUPPORT_BRAND_NAME', 'Support'),
     'support_team_name' => env('SUPPORT_TEAM_NAME', 'Support Team'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Agent UI mode
+    |--------------------------------------------------------------------------
+    |
+    | Controls which interface agents (non-admin staff) see after login.
+    | Admins always use the dashboard UI. Values: dashboard | whatsapp
+    |
+    */
+    'agent_ui_mode' => env('SUPPORT_AGENT_UI_MODE', 'dashboard'),
+
     'otp' => [
         'enabled' => env('SUPPORT_OTP_ENABLED', true),
         'driver' => env('SUPPORT_OTP_DRIVER', 'log'),

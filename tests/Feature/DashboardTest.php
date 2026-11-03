@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -7,10 +8,18 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect('/login');
 });
 
-test('authenticated users can visit the dashboard', function () {
-    $user = User::factory()->create();
+test('authenticated staff are redirected to the admin home', function () {
+    $user = User::factory()->create(['role' => UserRole::Admin]);
     $this->actingAs($user);
 
-    $response = $this->get(route('dashboard'));
-    $response->assertOk();
+    $this->get(route('dashboard'))
+        ->assertRedirect(route('admin.dashboard'));
+});
+
+test('authenticated customers are redirected to support', function () {
+    $user = User::factory()->customer()->create();
+    $this->actingAs($user);
+
+    $this->get(route('dashboard'))
+        ->assertRedirect(route('support.index'));
 });

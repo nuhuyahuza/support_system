@@ -24,6 +24,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $email_verified_at
  * @property string|null $password
  * @property UserRole $role
+ * @property bool $is_active
  * @property bool $is_online
  * @property Carbon|null $last_seen_at
  * @property string|null $two_factor_secret
@@ -33,7 +34,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_online', 'last_seen_at'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'role', 'is_active', 'is_online', 'last_seen_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -47,6 +48,7 @@ class User extends Authenticatable implements PasskeyUser
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'role' => UserRole::class,
+            'is_active' => 'boolean',
             'is_online' => 'boolean',
             'last_seen_at' => 'datetime',
         ];

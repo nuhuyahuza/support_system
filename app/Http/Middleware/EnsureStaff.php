@@ -20,6 +20,16 @@ class EnsureStaff
             return redirect('/admin/login');
         }
 
+        if ($user->is_active === false) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/admin/login')->withErrors([
+                'email' => 'This account has been deactivated.',
+            ]);
+        }
+
         return $next($request);
     }
 }

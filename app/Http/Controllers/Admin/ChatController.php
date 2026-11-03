@@ -14,7 +14,9 @@ use App\Services\Chat\ChatService;
 use App\Services\Presence\PresenceService;
 use App\Services\Settings\SupportSettings;
 use App\Support\SafeBroadcast;
+use App\Support\StaffHome;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,7 +28,11 @@ class ChatController extends Controller
         ChatService $chat,
         PresenceService $presence,
         SupportSettings $settings,
-    ): Response {
+    ): Response|RedirectResponse {
+        if (StaffHome::usesDashboardUi($request->user())) {
+            return redirect()->route('admin.conversations.index', $request->query());
+        }
+
         $user = $request->user();
         $presence->markOnline($user);
 

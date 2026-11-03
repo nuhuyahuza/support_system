@@ -54,4 +54,5 @@ export type SupportSettings = {
     ai_system_prompt: string;
     brand_name: string;
     support_team_name: string;
+    agent_ui_mode: 'dashboard' | 'whatsapp';
 };
