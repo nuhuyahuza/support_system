@@ -1,10 +1,14 @@
 import { createInertiaApp } from '@inertiajs/react';
+import { registerSW } from 'virtual:pwa-register';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AuthLayout from '@/layouts/auth-layout';
 import ChatLayout from '@/layouts/chat-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+
+// SW is generated under public/build then published to /sw.js (see publish-sw.mjs).
+registerSW({ immediate: true });
 
 void createInertiaApp({
     title: (title) => title || 'Support',

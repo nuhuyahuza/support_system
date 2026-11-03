@@ -5,6 +5,14 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+/public/sw.js
+/public/sw.js.map
+/public/workbox-*.js
+/public/workbox-*.js.map
+/public/dev-dist
+/public/registerSW.js
+/public/build/sw.js
+/public/build/workbox-*.js
 /storage/*.key
 /storage/pail
 /resources/js/actions

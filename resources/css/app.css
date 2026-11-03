@@ -191,3 +191,10 @@
         radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.02), transparent 35%),
         radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.02), transparent 30%);
 }
+
+/* Standalone PWA: fill the device viewport under the status bar */
+@supports (padding: env(safe-area-inset-top)) {
+    .wa-app {
+        min-height: 100dvh;
+    }
+}

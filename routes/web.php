@@ -4,11 +4,14 @@ use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
 use App\Http\Controllers\Customer\SupportController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureCustomer;
 use App\Http\Middleware\EnsureStaff;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
 
 Route::get('/', function () {
     if (auth()->check()) {

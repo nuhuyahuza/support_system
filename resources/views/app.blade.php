@@ -2,8 +2,18 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        @php
+            $brandName = \App\Models\Setting::getValue('brand_name', config('support.brand_name', config('app.name', 'Support')));
+        @endphp
+        <meta name="theme-color" content="#075e54" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#0b141a" media="(prefers-color-scheme: dark)">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="{{ $brandName }}">
+        <link rel="manifest" href="{{ route('manifest') }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -40,7 +50,7 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>{{ \App\Models\Setting::getValue('brand_name', config('support.brand_name', config('app.name', 'Support'))) }}</title>
+            <title>{{ $brandName }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

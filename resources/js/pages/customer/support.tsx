@@ -15,6 +15,7 @@ import Composer from '@/components/chat/composer';
 import ConversationListItem from '@/components/chat/conversation-list-item';
 import MessageThread from '@/components/chat/message-thread';
 import { useConversationChannel } from '@/hooks/use-conversation-channel';
+import { usePwaInstall } from '@/hooks/use-pwa-install';
 import { initials } from '@/lib/chat-time';
 import type { Announcement, ChatMessage, ConversationSummary } from '@/types/chat';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,7 @@ export default function CustomerSupport({
     const [mobileShowChat, setMobileShowChat] = useState(true);
     const [typingLabel, setTypingLabel] = useState<string | null>(null);
     const [search, setSearch] = useState('');
+    const { canInstall, promptInstall } = usePwaInstall();
 
     useEffect(() => {
         setMessages(initialMessages);
@@ -160,9 +162,15 @@ export default function CustomerSupport({
                 <header className="flex items-center justify-between gap-2 px-4 py-3">
                     <h1 className="truncate text-xl font-semibold">{brandName}</h1>
                     <div className="flex items-center gap-1 text-[var(--wa-icon)]">
-                        <button type="button" className="hidden rounded-full bg-[#25d366]/10 px-2.5 py-1 text-xs font-medium text-[#25d366] sm:inline-flex items-center gap-1">
-                            <Download className="size-3.5" /> Install
-                        </button>
+                        {canInstall ? (
+                            <button
+                                type="button"
+                                onClick={() => void promptInstall()}
+                                className="inline-flex items-center gap-1 rounded-full bg-[#25d366]/10 px-2.5 py-1 text-xs font-medium text-[#25d366]"
+                            >
+                                <Download className="size-3.5" /> Install
+                            </button>
+                        ) : null}
                         <IconButton
                             onClick={() =>
                                 router.reload({

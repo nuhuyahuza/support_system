@@ -47,11 +47,17 @@ export default function ChatShell({ children, className }: Props) {
     }, [user]);
 
     return (
-        <div className={cn('wa-app flex h-dvh w-full overflow-hidden bg-[var(--wa-app-bg)] text-[var(--wa-fg)]', className)}>
+        <div
+            className={cn(
+                'wa-app flex h-dvh w-full overflow-hidden bg-[var(--wa-app-bg)] text-[var(--wa-fg)]',
+                'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]',
+                className,
+            )}
+        >
             <button
                 type="button"
                 onClick={() => updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}
-                className="fixed right-4 top-4 z-50 flex size-9 items-center justify-center rounded-full bg-[var(--wa-panel)] text-[var(--wa-icon)] shadow-md"
+                className="fixed right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-50 flex size-9 items-center justify-center rounded-full bg-[var(--wa-panel)] text-[var(--wa-icon)] shadow-md"
                 aria-label="Toggle theme"
             >
                 {resolvedAppearance === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
