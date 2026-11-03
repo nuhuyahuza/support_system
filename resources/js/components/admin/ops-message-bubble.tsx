@@ -1,4 +1,6 @@
 import { Check, CheckCheck } from 'lucide-react';
+import { useState } from 'react';
+import ImageLightbox from '@/components/chat/image-lightbox';
 import { formatMessageTime } from '@/lib/chat-time';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/types/chat';
@@ -20,6 +22,7 @@ function isImageMessage(message: ChatMessage): boolean {
 }
 
 export default function OpsMessageBubble({ message, outgoing }: Props) {
+    const [lightboxOpen, setLightboxOpen] = useState(false);
     const isAi = message.sender_type === 'ai';
     const isSystem = message.sender_type === 'system';
     const showImage = isImageMessage(message) && Boolean(message.attachment_url);
@@ -52,14 +55,26 @@ export default function OpsMessageBubble({ message, outgoing }: Props) {
                 ) : null}
 
                 {showImage ? (
-                    <a href={message.attachment_url!} target="_blank" rel="noreferrer" className="mb-1.5 block">
-                        <img
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setLightboxOpen(true)}
+                            className="mb-1.5 block w-full cursor-zoom-in overflow-hidden rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ops-teal)]"
+                        >
+                            <img
+                                src={message.attachment_url!}
+                                alt={message.attachment_name ?? 'attachment'}
+                                className="max-h-64 w-full rounded-xl object-cover"
+                                loading="lazy"
+                            />
+                        </button>
+                        <ImageLightbox
+                            open={lightboxOpen}
+                            onOpenChange={setLightboxOpen}
                             src={message.attachment_url!}
                             alt={message.attachment_name ?? 'attachment'}
-                            className="max-h-64 w-full rounded-xl object-cover"
-                            loading="lazy"
                         />
-                    </a>
+                    </>
                 ) : null}
 
                 {showFile ? (
