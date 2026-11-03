@@ -1,9 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import ChatShell from '@/components/chat/chat-shell';
 
 export default function Dashboard() {
     return (
-        <ChatShell>
+        <>
             <Head title="Dashboard" />
             <div className="mx-auto flex h-full w-full max-w-3xl flex-col justify-center px-6">
                 <div className="rounded-2xl bg-[var(--wa-panel)] p-8 shadow-lg">
@@ -27,6 +26,6 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
-        </ChatShell>
+        </>
     );
 }

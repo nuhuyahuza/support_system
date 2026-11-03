@@ -1,6 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
-import ChatShell from '@/components/chat/chat-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +14,7 @@ type Props = {
 
 export default function AdminSettings({ settings, announcement, brandName }: Props) {
     return (
-        <ChatShell>
+        <>
             <Head title="Support settings" />
             <div className="mx-auto flex h-full w-full max-w-3xl flex-col overflow-y-auto px-4 py-8">
                 <div className="mb-6 flex items-center justify-between">
@@ -206,6 +205,6 @@ export default function AdminSettings({ settings, announcement, brandName }: Pro
                     )}
                 </Form>
             </div>
-        </ChatShell>
+        </>
     );
 }

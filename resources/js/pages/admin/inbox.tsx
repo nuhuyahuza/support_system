@@ -8,8 +8,7 @@ import {
     Settings,
     Users,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import ChatShell from '@/components/chat/chat-shell';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Composer from '@/components/chat/composer';
 import ConversationListItem from '@/components/chat/conversation-list-item';
 import MessageThread from '@/components/chat/message-thread';
@@ -18,7 +17,6 @@ import { getEcho } from '@/lib/echo';
 import { initials } from '@/lib/chat-time';
 import type { Announcement, ChatMessage, ConversationSummary, SupportSettings } from '@/types/chat';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
 
 type Props = {
     brandName: string;
@@ -63,15 +61,21 @@ export default function AdminInbox({
     const [search, setSearch] = useState(initialSearch);
     const [typingLabel, setTypingLabel] = useState<string | null>(null);
     const [mobileShowChat, setMobileShowChat] = useState(Boolean(activeConversation));
+    const activeIdRef = useRef(activeConversation?.id ?? null);
 
     useEffect(() => {
         setConversations(initialConversations);
         setMessages(initialMessages);
         setActive(activeConversation);
+        activeIdRef.current = activeConversation?.id ?? null;
     }, [initialConversations, initialMessages, activeConversation]);
 
     const appendMessage = useCallback((message: ChatMessage) => {
         setMessages((current) => {
+            if (activeIdRef.current !== message.conversation_id) {
+                return current;
+            }
+
             if (current.some((item) => item.id === message.id)) {
                 return current;
             }
@@ -94,7 +98,8 @@ export default function AdminInbox({
                                   created_at: message.created_at,
                               },
                               unread_count:
-                                  message.sender_type === 'customer' && active?.id !== message.conversation_id
+                                  message.sender_type === 'customer' &&
+                                  activeIdRef.current !== message.conversation_id
                                       ? item.unread_count + 1
                                       : item.unread_count,
                           }
@@ -102,45 +107,54 @@ export default function AdminInbox({
                 )
                 .sort((a, b) => (b.last_message_at ?? '').localeCompare(a.last_message_at ?? '')),
         );
-    }, [active?.id]);
+    }, []);
 
-    useConversationChannel(active?.id, {
-        onMessage: (message) => {
-            appendMessage(message);
-            if (active?.id === message.conversation_id && message.sender_type === 'customer') {
-                void fetch(`/admin/chats/${active.id}/read`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken(),
-                        Accept: 'application/json',
-                    },
-                });
-            }
-        },
-        onRead: ({ message_ids, read_at }) => {
-            setMessages((current) =>
-                current.map((message) =>
-                    message_ids.includes(message.id) ? { ...message, read_at } : message,
-                ),
-            );
-        },
-        onTyping: ({ name, typing, user_id }) => {
-            if (!active || user_id === active.assigned_agent?.id) {
+    const lastMessageId = messages.reduce((max, message) => Math.max(max, message.id), 0);
+
+    useConversationChannel(
+        active?.id,
+        {
+            onMessage: (message) => {
+                appendMessage(message);
+                if (activeIdRef.current === message.conversation_id && message.sender_type === 'customer') {
+                    void fetch(`/admin/chats/${message.conversation_id}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken(),
+                            Accept: 'application/json',
+                        },
+                    });
+                }
+            },
+            onRead: ({ message_ids, read_at }) => {
+                setMessages((current) =>
+                    current.map((message) =>
+                        message_ids.includes(message.id) ? { ...message, read_at } : message,
+                    ),
+                );
+            },
+            onTyping: ({ name, typing }) => {
                 setTypingLabel(typing ? `${name} is typing…` : null);
-                return;
-            }
-            setTypingLabel(typing ? `${name} is typing…` : null);
+            },
         },
-    });
+        {
+            pollUrl: active ? `/admin/chats/${active.id}` : null,
+            lastMessageId,
+        },
+    );
 
+    // Subscribe to admin.inbox once — do not rejoin when active conversation changes
     useEffect(() => {
         const echo = getEcho();
-        if (!echo) return;
+        if (!echo) {
+            return;
+        }
 
         const channel = echo.private('admin.inbox');
         channel.listen('.message.sent', (payload: { message: ChatMessage }) => {
             const message = payload.message;
-            if (active?.id === message.conversation_id) {
+
+            if (activeIdRef.current === message.conversation_id) {
                 appendMessage(message);
                 return;
             }
@@ -148,7 +162,10 @@ export default function AdminInbox({
             setConversations((current) => {
                 const exists = current.some((item) => item.id === message.conversation_id);
                 if (!exists) {
-                    router.reload({ only: ['conversations', 'overview'] });
+                    router.reload({
+                        only: ['conversations', 'overview'],
+                        preserveState: true,
+                    });
                     return current;
                 }
 
@@ -179,23 +196,35 @@ export default function AdminInbox({
         return () => {
             echo.leave('admin.inbox');
         };
-    }, [active?.id, appendMessage]);
+    }, [appendMessage]);
 
     const openConversation = (conversation: ConversationSummary) => {
         setMobileShowChat(true);
         router.get(
             '/admin/chats',
             { conversation: conversation.id, filter, search },
-            { preserveState: true, replace: true, only: ['activeConversation', 'messages', 'conversations', 'overview'] },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['activeConversation', 'messages', 'conversations', 'overview'],
+            },
         );
     };
 
     const applyFilter = (next: string) => {
-        router.get('/admin/chats', { filter: next, search }, { preserveState: true, replace: true });
+        router.get('/admin/chats', { filter: next, search }, {
+            preserveState: true,
+            replace: true,
+            only: ['conversations', 'overview', 'filter', 'search', 'activeConversation', 'messages'],
+        });
     };
 
     const submitSearch = () => {
-        router.get('/admin/chats', { filter, search }, { preserveState: true, replace: true });
+        router.get('/admin/chats', { filter, search }, {
+            preserveState: true,
+            replace: true,
+            only: ['conversations', 'overview', 'filter', 'search', 'activeConversation', 'messages'],
+        });
     };
 
     const sendMessage = async ({ body, attachment }: { body: string; attachment: File | null }) => {
@@ -235,6 +264,30 @@ export default function AdminInbox({
         });
     };
 
+    const closeConversation = async () => {
+        if (!active) return;
+
+        const response = await fetch(`/admin/chats/${active.id}/close`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken(),
+                Accept: 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        setConversations((current) =>
+            current.map((item) =>
+                item.id === active.id ? { ...item, status: 'closed', ai_active: false } : item,
+            ),
+        );
+        setActive((current) => (current ? { ...current, status: 'closed', ai_active: false } : current));
+        router.reload({ only: ['conversations', 'overview', 'activeConversation'], preserveState: true });
+    };
+
     const stats = useMemo(
         () => [
             { label: 'Open', value: overview.open, icon: MessageCircle },
@@ -246,7 +299,7 @@ export default function AdminInbox({
     );
 
     return (
-        <ChatShell>
+        <>
             <Head title={`${brandName} · Inbox`} />
 
             <aside
@@ -270,12 +323,13 @@ export default function AdminInbox({
                                 <Settings className="size-5" />
                             </button>
                         )}
-                        <form method="post" action="/logout">
-                            <input type="hidden" name="_token" value={csrfToken()} />
-                            <button type="submit" className="rounded-full px-2 py-1 text-xs text-[var(--wa-muted)] hover:underline">
-                                Logout
-                            </button>
-                        </form>
+                        <button
+                            type="button"
+                            onClick={() => router.post('/logout')}
+                            className="rounded-full px-2 py-1 text-xs text-[var(--wa-muted)] hover:underline"
+                        >
+                            Logout
+                        </button>
                     </div>
                 </header>
 
@@ -368,15 +422,9 @@ export default function AdminInbox({
                                 <button
                                     type="button"
                                     className="rounded-full px-3 py-1 text-xs text-[var(--wa-muted)] hover:bg-black/5"
-                                    onClick={() =>
-                                        void fetch(`/admin/chats/${active.id}/close`, {
-                                            method: 'POST',
-                                            headers: {
-                                                'X-CSRF-TOKEN': csrfToken(),
-                                                Accept: 'application/json',
-                                            },
-                                        }).then(() => router.reload())
-                                    }
+                                    onClick={() => {
+                                        void closeConversation();
+                                    }}
                                 >
                                     Close
                                 </button>
@@ -399,7 +447,7 @@ export default function AdminInbox({
                     </div>
                 )}
             </section>
-        </ChatShell>
+        </>
     );
 }
 

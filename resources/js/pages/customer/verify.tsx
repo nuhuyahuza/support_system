@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import { AuthFormPanel, AuthScreen } from '@/components/chat/auth-panel';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -54,12 +54,12 @@ export default function CustomerVerify({ phone, status, brandName }: Props) {
                                 {processing && <Spinner />}
                                 Verify & chat
                             </Button>
-                            <a
+                            <Link
                                 href="/login"
                                 className="block text-center text-sm text-[var(--wa-muted)] underline"
                             >
                                 Use a different number
-                            </a>
+                            </Link>
                         </AuthFormPanel>
                     )}
                 </Form>

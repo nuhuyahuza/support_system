@@ -10,8 +10,7 @@ import {
     Settings,
     Video,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import ChatShell from '@/components/chat/chat-shell';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Composer from '@/components/chat/composer';
 import ConversationListItem from '@/components/chat/conversation-list-item';
 import MessageThread from '@/components/chat/message-thread';
@@ -44,6 +43,10 @@ export default function CustomerSupport({
     const [typingLabel, setTypingLabel] = useState<string | null>(null);
     const [search, setSearch] = useState('');
 
+    useEffect(() => {
+        setMessages(initialMessages);
+    }, [initialMessages]);
+
     const appendMessage = useCallback((message: ChatMessage) => {
         setMessages((current) => {
             if (current.some((item) => item.id === message.id)) {
@@ -54,31 +57,42 @@ export default function CustomerSupport({
         });
     }, []);
 
-    useConversationChannel(conversation.id, {
-        onMessage: (message) => {
-            appendMessage(message);
-            void fetch(`/support/conversations/${conversation.id}/read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken(),
-                    Accept: 'application/json',
-                },
-            });
+    const lastMessageId = messages.reduce((max, message) => Math.max(max, message.id), 0);
+
+    useConversationChannel(
+        conversation.id,
+        {
+            onMessage: (message) => {
+                appendMessage(message);
+                if (message.sender_type !== 'customer') {
+                    void fetch(`/support/conversations/${conversation.id}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken(),
+                            Accept: 'application/json',
+                        },
+                    });
+                }
+            },
+            onRead: ({ message_ids, read_at }) => {
+                setMessages((current) =>
+                    current.map((message) =>
+                        message_ids.includes(message.id) ? { ...message, read_at } : message,
+                    ),
+                );
+            },
+            onTyping: ({ name, typing, user_id }) => {
+                if (user_id === conversation.customer.id) {
+                    return;
+                }
+                setTypingLabel(typing ? `${name} is typing…` : null);
+            },
         },
-        onRead: ({ message_ids, read_at }) => {
-            setMessages((current) =>
-                current.map((message) =>
-                    message_ids.includes(message.id) ? { ...message, read_at } : message,
-                ),
-            );
+        {
+            pollUrl: `/support/conversations/${conversation.id}/messages`,
+            lastMessageId,
         },
-        onTyping: ({ name, typing, user_id }) => {
-            if (user_id === conversation.customer.id) {
-                return;
-            }
-            setTypingLabel(typing ? `${name} is typing…` : null);
-        },
-    });
+    );
 
     const filtered = useMemo(() => {
         if (!search.trim()) {
@@ -123,7 +137,7 @@ export default function CustomerSupport({
     };
 
     return (
-        <ChatShell>
+        <>
             <Head title={brandName} />
 
             <aside
@@ -138,7 +152,14 @@ export default function CustomerSupport({
                         <button type="button" className="hidden rounded-full bg-[#25d366]/10 px-2.5 py-1 text-xs font-medium text-[#25d366] sm:inline-flex items-center gap-1">
                             <Download className="size-3.5" /> Install
                         </button>
-                        <IconButton onClick={() => router.reload()}>
+                        <IconButton
+                            onClick={() =>
+                                router.reload({
+                                    only: ['messages', 'conversation', 'supportOnline', 'supportLabel', 'announcement'],
+                                    preserveState: true,
+                                })
+                            }
+                        >
                             <RefreshCw className="size-5" />
                         </IconButton>
                         <IconButton>
@@ -243,7 +264,7 @@ export default function CustomerSupport({
                     </button>
                 </div>
             </section>
-        </ChatShell>
+        </>
     );
 }
 

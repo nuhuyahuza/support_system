@@ -98,11 +98,14 @@ class ChatController extends Controller
 
         $messages = $conversation->messages()
             ->with('sender:id,name,role')
+            ->when($request->integer('after'), fn ($q, $after) => $q->where('id', '>', $after))
             ->orderBy('id')
             ->get()
             ->map(fn (Message $message) => $chat->serializeMessage($message));
 
-        $chat->markRead($conversation, $request->user());
+        if (! $request->integer('after')) {
+            $chat->markRead($conversation, $request->user());
+        }
 
         return response()->json([
             'conversation' => $chat->serializeConversation($conversation, $request->user()),
