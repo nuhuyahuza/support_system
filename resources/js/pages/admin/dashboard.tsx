@@ -21,9 +21,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type SeriesPoint = { date: string; label: string; total: number };
 
@@ -65,25 +66,35 @@ function KpiCard({
     value,
     icon: Icon,
     hint,
+    tone = 'teal',
 }: {
     title: string;
     value: number;
     icon: typeof CircleDot;
     hint?: string;
+    tone?: 'teal' | 'ink' | 'amber' | 'slate';
 }) {
+    const tones = {
+        teal: 'from-[var(--ops-teal)]/20 to-transparent text-[var(--ops-teal)]',
+        ink: 'from-[var(--ops-ink)]/15 to-transparent text-[var(--ops-ink)]',
+        amber: 'from-amber-400/25 to-transparent text-amber-700 dark:text-amber-300',
+        slate: 'from-slate-400/20 to-transparent text-slate-600 dark:text-slate-300',
+    };
+
     return (
-        <Card className="gap-4 py-4">
-            <CardHeader className="flex flex-row items-center justify-between px-5 pb-0">
-                <CardDescription className="text-sm font-medium text-muted-foreground">{title}</CardDescription>
-                <div className="rounded-lg bg-muted p-2 text-muted-foreground">
+        <div className="ops-card ops-fade-in group relative overflow-hidden p-5 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_50px_-28px_rgba(15,23,42,0.45)]">
+            <div className={cn('pointer-events-none absolute inset-0 bg-gradient-to-br opacity-80', tones[tone])} />
+            <div className="relative flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{title}</p>
+                    <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ops-ink)]">{value}</p>
+                    {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+                </div>
+                <div className="rounded-2xl bg-white/70 p-2.5 shadow-sm backdrop-blur dark:bg-white/10">
                     <Icon className="size-4" />
                 </div>
-            </CardHeader>
-            <CardContent className="px-5">
-                <div className="text-3xl font-semibold tracking-tight">{value}</div>
-                {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 
@@ -105,51 +116,58 @@ export default function AdminDashboard({
         <>
             <Head title="Dashboard" />
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Support volume, agent load, and waiting conversations.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {[7, 30].map((value) => (
-                            <Button
-                                key={value}
-                                size="sm"
-                                variant={days === value ? 'default' : 'outline'}
-                                onClick={() => router.get('/admin/dashboard', { days: value }, { preserveState: true })}
-                            >
-                                {value}d
+                <AdminPageHeader
+                    title="Analytics"
+                    description="Support volume, agent load, and conversations waiting for a human reply."
+                    actions={
+                        <>
+                            {[7, 30].map((value) => (
+                                <Button
+                                    key={value}
+                                    size="sm"
+                                    variant={days === value ? 'default' : 'outline'}
+                                    className="rounded-full"
+                                    onClick={() =>
+                                        router.get('/admin/dashboard', { days: value }, { preserveState: true })
+                                    }
+                                >
+                                    {value}d
+                                </Button>
+                            ))}
+                            <Button asChild size="sm" className="rounded-full bg-[var(--ops-teal)] hover:brightness-105">
+                                <Link href="/admin/conversations?filter=unread">View waiting</Link>
                             </Button>
-                        ))}
-                        <Button asChild size="sm" variant="secondary">
-                            <Link href="/admin/conversations?filter=unread">View waiting</Link>
-                        </Button>
-                    </div>
-                </div>
+                        </>
+                    }
+                />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-                    <KpiCard title="Open chats" value={kpis.open} icon={CircleDot} />
-                    <KpiCard title="Waiting" value={kpis.waiting} icon={MessageSquareWarning} hint="Unread customer replies" />
-                    <KpiCard title="Closed today" value={kpis.closed_today} icon={Clock3} />
-                    <KpiCard title="Agents online" value={kpis.agents_online} icon={UserCheck} />
-                    <KpiCard title="AI sessions" value={kpis.ai_sessions} icon={Bot} />
-                    <KpiCard title="Customers" value={kpis.customers_total} icon={Users} />
+                    <KpiCard title="Open chats" value={kpis.open} icon={CircleDot} tone="ink" />
+                    <KpiCard
+                        title="Waiting"
+                        value={kpis.waiting}
+                        icon={MessageSquareWarning}
+                        hint="Unread customer replies"
+                        tone="amber"
+                    />
+                    <KpiCard title="Closed today" value={kpis.closed_today} icon={Clock3} tone="slate" />
+                    <KpiCard title="Agents online" value={kpis.agents_online} icon={UserCheck} tone="teal" />
+                    <KpiCard title="AI sessions" value={kpis.ai_sessions} icon={Bot} tone="teal" />
+                    <KpiCard title="Customers" value={kpis.customers_total} icon={Users} tone="ink" />
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-3">
-                    <Card className="xl:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Conversations opened</CardTitle>
-                            <CardDescription>Last {days} days</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
+                    <div className="ops-card ops-fade-in p-5 xl:col-span-2">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">Conversations opened</h2>
+                            <p className="text-sm text-muted-foreground">Last {days} days</p>
+                        </div>
+                        <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={series.conversations}>
                                     <defs>
                                         <linearGradient id="convFill" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.35} />
+                                            <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.4} />
                                             <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.02} />
                                         </linearGradient>
                                     </defs>
@@ -162,19 +180,19 @@ export default function AdminDashboard({
                                         dataKey="total"
                                         stroke="var(--chart-1)"
                                         fill="url(#convFill)"
-                                        strokeWidth={2}
+                                        strokeWidth={2.5}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Status mix</CardTitle>
-                            <CardDescription>All conversations</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
+                    <div className="ops-card ops-fade-in p-5">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">Status mix</h2>
+                            <p className="text-sm text-muted-foreground">All conversations</p>
+                        </div>
+                        <div className="h-56">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85}>
@@ -185,68 +203,73 @@ export default function AdminDashboard({
                                     <Tooltip />
                                 </PieChart>
                             </ResponsiveContainer>
-                            <div className="mt-2 flex justify-center gap-4 text-xs text-muted-foreground">
-                                {statusData.map((item, index) => (
-                                    <span key={item.name} className="inline-flex items-center gap-1.5">
-                                        <span
-                                            className="size-2 rounded-full"
-                                            style={{ background: chartColors[index % chartColors.length] }}
-                                        />
-                                        {item.name}: {item.value}
-                                    </span>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                        <div className="mt-2 flex justify-center gap-4 text-xs text-muted-foreground">
+                            {statusData.map((item, index) => (
+                                <span key={item.name} className="inline-flex items-center gap-1.5">
+                                    <span
+                                        className="size-2 rounded-full"
+                                        style={{ background: chartColors[index % chartColors.length] }}
+                                    />
+                                    {item.name}: {item.value}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-3">
-                    <Card className="xl:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Messages</CardTitle>
-                            <CardDescription>Volume over the last {days} days</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-72">
+                    <div className="ops-card ops-fade-in p-5 xl:col-span-2">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">Messages</h2>
+                            <p className="text-sm text-muted-foreground">Volume over the last {days} days</p>
+                        </div>
+                        <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={series.messages}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                                     <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={12} />
                                     <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} width={28} />
                                     <Tooltip />
-                                    <Bar dataKey="total" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
+                                    <Bar dataKey="total" fill="var(--chart-2)" radius={[8, 8, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>By sender</CardTitle>
-                            <CardDescription>Last {days} days</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
+                    <div className="ops-card ops-fade-in p-5">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">By sender</h2>
+                            <p className="text-sm text-muted-foreground">Last {days} days</p>
+                        </div>
+                        <div className="space-y-2.5">
                             {messagesBySender.map((row) => (
-                                <div key={row.type} className="flex items-center justify-between rounded-lg border px-3 py-2">
+                                <div
+                                    key={row.type}
+                                    className="flex items-center justify-between rounded-2xl border border-border/60 bg-background/60 px-3 py-2.5"
+                                >
                                     <span className="capitalize text-sm">{row.type}</span>
-                                    <Badge variant="secondary">{row.total}</Badge>
+                                    <Badge className="rounded-full" variant="secondary">
+                                        {row.total}
+                                    </Badge>
                                 </div>
                             ))}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-2">
-                    <Card>
-                        <CardHeader className="flex-row items-center justify-between">
+                    <div className="ops-card ops-fade-in p-5">
+                        <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
-                                <CardTitle>Waiting chats</CardTitle>
-                                <CardDescription>Needs a human reply</CardDescription>
+                                <h2 className="text-base font-semibold text-[var(--ops-ink)]">Waiting chats</h2>
+                                <p className="text-sm text-muted-foreground">Needs a human reply</p>
                             </div>
-                            <Button asChild size="sm" variant="outline">
+                            <Button asChild size="sm" variant="outline" className="rounded-full">
                                 <Link href="/admin/conversations?filter=unread">Open all</Link>
                             </Button>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
+                        </div>
+                        <div className="space-y-2">
                             {waitingChats.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No waiting conversations.</p>
                             ) : (
@@ -254,7 +277,7 @@ export default function AdminDashboard({
                                     <Link
                                         key={chat.id}
                                         href={`/admin/conversations?conversation=${chat.id}&filter=unread`}
-                                        className="block rounded-lg border px-3 py-2 transition-colors hover:bg-muted/50"
+                                        className="block rounded-2xl border border-border/60 bg-background/50 px-3 py-2.5 transition hover:border-[var(--ops-teal)]/40 hover:bg-[var(--ops-teal-soft)]/50"
                                     >
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0">
@@ -263,27 +286,29 @@ export default function AdminDashboard({
                                                     {chat.latest_message?.body || 'Attachment'}
                                                 </p>
                                             </div>
-                                            <Badge variant="outline">#{chat.id}</Badge>
+                                            <Badge variant="outline" className="rounded-full">
+                                                #{chat.id}
+                                            </Badge>
                                         </div>
                                     </Link>
                                 ))
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Agent workload</CardTitle>
-                            <CardDescription>Open conversations assigned</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
+                    <div className="ops-card ops-fade-in p-5">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">Agent workload</h2>
+                            <p className="text-sm text-muted-foreground">Open conversations assigned</p>
+                        </div>
+                        <div className="space-y-2">
                             {agentWorkload.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No active agents.</p>
                             ) : (
                                 agentWorkload.map((agent) => (
                                     <div
                                         key={agent.id}
-                                        className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                        className="flex items-center justify-between rounded-2xl border border-border/60 bg-background/50 px-3 py-2.5"
                                     >
                                         <div>
                                             <p className="text-sm font-medium">{agent.name}</p>
@@ -292,14 +317,17 @@ export default function AdminDashboard({
                                                 {agent.is_online ? ' · online' : ''}
                                             </p>
                                         </div>
-                                        <Badge variant={agent.open_assigned > 0 ? 'default' : 'secondary'}>
+                                        <Badge
+                                            className="rounded-full"
+                                            variant={agent.open_assigned > 0 ? 'default' : 'secondary'}
+                                        >
                                             {agent.open_assigned}
                                         </Badge>
                                     </div>
                                 ))
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

@@ -1,9 +1,9 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 type CustomerRow = {
@@ -50,66 +50,75 @@ export default function AdminCustomers({ search: initialSearch, customers }: Pro
         <>
             <Head title="Customers" />
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Search customers, open their chats, and deactivate accounts.
-                        </p>
-                    </div>
-                    <form onSubmit={onSearch} className="relative w-full sm:max-w-sm">
-                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder="Search name or phone"
-                            className="pl-9"
-                        />
-                    </form>
-                </div>
+                <AdminPageHeader
+                    title="Customers"
+                    description="Search customers, open their chats, and deactivate accounts."
+                    actions={
+                        <form onSubmit={onSearch} className="relative w-full sm:w-72">
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                placeholder="Search name or phone"
+                                className="rounded-full border-border/70 bg-[var(--ops-surface)] pl-9 backdrop-blur"
+                            />
+                        </form>
+                    }
+                />
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Directory</CardTitle>
-                        <CardDescription>Phone-authenticated support users</CardDescription>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                        <table className="w-full min-w-[720px] text-left text-sm">
-                            <thead className="border-b text-muted-foreground">
+                <div className="ops-card ops-fade-in overflow-hidden">
+                    <div className="border-b border-border/60 px-5 py-4">
+                        <h2 className="text-base font-semibold text-[var(--ops-ink)]">Directory</h2>
+                        <p className="text-sm text-muted-foreground">Phone-authenticated support users</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[760px] text-left text-sm">
+                            <thead className="bg-muted/40 text-muted-foreground">
                                 <tr>
-                                    <th className="px-2 py-2 font-medium">Customer</th>
-                                    <th className="px-2 py-2 font-medium">Status</th>
-                                    <th className="px-2 py-2 font-medium">Conversation</th>
-                                    <th className="px-2 py-2 font-medium">Last message</th>
-                                    <th className="px-2 py-2 font-medium">Actions</th>
+                                    <th className="px-5 py-3 font-medium">Customer</th>
+                                    <th className="px-3 py-3 font-medium">Status</th>
+                                    <th className="px-3 py-3 font-medium">Conversation</th>
+                                    <th className="px-3 py-3 font-medium">Last message</th>
+                                    <th className="px-5 py-3 font-medium">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {customers.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-2 py-8 text-muted-foreground">
+                                        <td colSpan={5} className="px-5 py-16 text-center text-muted-foreground">
+                                            <Users className="mx-auto mb-2 size-8 opacity-40" />
                                             No customers found.
                                         </td>
                                     </tr>
                                 ) : (
                                     customers.data.map((customer) => (
-                                        <tr key={customer.id} className="border-b last:border-0">
-                                            <td className="px-2 py-3">
-                                                <div className="font-medium">{customer.name}</div>
+                                        <tr
+                                            key={customer.id}
+                                            className="border-t border-border/50 transition hover:bg-[var(--ops-teal-soft)]/30"
+                                        >
+                                            <td className="px-5 py-3.5">
+                                                <div className="font-medium text-[var(--ops-ink)]">{customer.name}</div>
                                                 <div className="text-xs text-muted-foreground">{customer.phone}</div>
                                             </td>
-                                            <td className="px-2 py-3">
+                                            <td className="px-3 py-3.5">
                                                 <div className="flex flex-wrap gap-1">
-                                                    <Badge variant={customer.is_active ? 'secondary' : 'destructive'}>
+                                                    <Badge
+                                                        className="rounded-full"
+                                                        variant={customer.is_active ? 'secondary' : 'destructive'}
+                                                    >
                                                         {customer.is_active ? 'Active' : 'Inactive'}
                                                     </Badge>
-                                                    {customer.is_online ? <Badge variant="outline">Online</Badge> : null}
+                                                    {customer.is_online ? (
+                                                        <Badge variant="outline" className="rounded-full">
+                                                            Online
+                                                        </Badge>
+                                                    ) : null}
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-3">
+                                            <td className="px-3 py-3.5">
                                                 {customer.conversation ? (
                                                     <div className="space-y-1">
-                                                        <Badge variant="outline" className="capitalize">
+                                                        <Badge variant="outline" className="rounded-full capitalize">
                                                             {customer.conversation.status}
                                                         </Badge>
                                                         {customer.conversation.assigned_agent ? (
@@ -122,15 +131,15 @@ export default function AdminCustomers({ search: initialSearch, customers }: Pro
                                                     <span className="text-muted-foreground">—</span>
                                                 )}
                                             </td>
-                                            <td className="max-w-[220px] px-2 py-3">
+                                            <td className="max-w-[220px] px-3 py-3.5">
                                                 <p className="truncate text-muted-foreground">
                                                     {customer.conversation?.latest_message?.body || '—'}
                                                 </p>
                                             </td>
-                                            <td className="px-2 py-3">
+                                            <td className="px-5 py-3.5">
                                                 <div className="flex flex-wrap gap-2">
                                                     {customer.conversation ? (
-                                                        <Button asChild size="sm" variant="outline">
+                                                        <Button asChild size="sm" variant="outline" className="rounded-full">
                                                             <Link
                                                                 href={`/admin/conversations?conversation=${customer.conversation.id}`}
                                                             >
@@ -152,6 +161,7 @@ export default function AdminCustomers({ search: initialSearch, customers }: Pro
                                                             size="sm"
                                                             variant={customer.is_active ? 'destructive' : 'default'}
                                                             type="submit"
+                                                            className="rounded-full"
                                                         >
                                                             {customer.is_active ? 'Deactivate' : 'Activate'}
                                                         </Button>
@@ -163,23 +173,24 @@ export default function AdminCustomers({ search: initialSearch, customers }: Pro
                                 )}
                             </tbody>
                         </table>
+                    </div>
 
-                        {customers.links.length > 3 ? (
-                            <div className="mt-4 flex flex-wrap gap-1">
-                                {customers.links.map((link, index) => (
-                                    <Button
-                                        key={`${link.label}-${index}`}
-                                        size="sm"
-                                        variant={link.active ? 'default' : 'ghost'}
-                                        disabled={!link.url}
-                                        onClick={() => link.url && router.visit(link.url)}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        ) : null}
-                    </CardContent>
-                </Card>
+                    {customers.links.length > 3 ? (
+                        <div className="flex flex-wrap gap-1 border-t border-border/60 p-3">
+                            {customers.links.map((link, index) => (
+                                <Button
+                                    key={`${link.label}-${index}`}
+                                    size="sm"
+                                    variant={link.active ? 'default' : 'ghost'}
+                                    disabled={!link.url}
+                                    className="rounded-full"
+                                    onClick={() => link.url && router.visit(link.url)}
+                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                />
+                            ))}
+                        </div>
+                    ) : null}
+                </div>
             </div>
         </>
     );

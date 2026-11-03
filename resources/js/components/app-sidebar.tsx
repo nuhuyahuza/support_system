@@ -56,24 +56,31 @@ export function AppSidebar() {
     ];
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+        <Sidebar collapsible="icon" variant="inset" className="border-none">
+            <SidebarHeader className="px-3 pt-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton
+                            size="lg"
+                            asChild
+                            className="rounded-2xl bg-sidebar-accent/60 hover:bg-sidebar-accent"
+                        >
                             <Link href="/admin/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+                <p className="px-2 pt-3 text-[10px] font-semibold tracking-[0.18em] text-sidebar-foreground/45 uppercase group-data-[collapsible=icon]:hidden">
+                    Operations
+                </p>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent className="px-1">
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 
-            <SidebarFooter>
+            <SidebarFooter className="border-t border-sidebar-border/60 p-3">
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

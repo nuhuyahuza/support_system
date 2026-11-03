@@ -1,10 +1,10 @@
 import { Form, Head, router, usePage } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Headphones, Search } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -46,107 +46,121 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
         <>
             <Head title="Agents" />
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight">Agents</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Create support staff, change roles, reset passwords, and deactivate accounts.
-                        </p>
-                    </div>
-                    <form onSubmit={onSearch} className="relative w-full sm:max-w-sm">
-                        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder="Search name or email"
-                            className="pl-9"
-                        />
-                    </form>
-                </div>
+                <AdminPageHeader
+                    title="Agents"
+                    description="Create support staff, change roles, reset passwords, and deactivate accounts."
+                    actions={
+                        <form onSubmit={onSearch} className="relative w-full sm:w-72">
+                            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                placeholder="Search name or email"
+                                className="rounded-full border-border/70 bg-[var(--ops-surface)] pl-9 backdrop-blur"
+                            />
+                        </form>
+                    }
+                />
 
                 <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Add staff</CardTitle>
-                            <CardDescription>Invite an agent or admin</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Form action="/admin/agents" method="post" className="space-y-4" options={{ preserveScroll: true }}>
-                                {({ processing, errors }) => (
-                                    <>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name">Name</Label>
-                                            <Input id="name" name="name" required />
-                                            <InputError message={errors.name} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email">Email</Label>
-                                            <Input id="email" name="email" type="email" required />
-                                            <InputError message={errors.email} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="role">Role</Label>
-                                            <select
-                                                id="role"
-                                                name="role"
-                                                defaultValue="agent"
-                                                className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-                                            >
-                                                <option value="agent">Agent</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
-                                            <InputError message={errors.role} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="password">Password</Label>
-                                            <Input id="password" name="password" type="password" required />
-                                            <InputError message={errors.password} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="password_confirmation">Confirm password</Label>
-                                            <Input
-                                                id="password_confirmation"
-                                                name="password_confirmation"
-                                                type="password"
-                                                required
-                                            />
-                                        </div>
-                                        <Button type="submit" disabled={processing} className="w-full">
-                                            {processing ? <Spinner /> : null}
-                                            Create staff member
-                                        </Button>
-                                    </>
-                                )}
-                            </Form>
-                        </CardContent>
-                    </Card>
+                    <div className="ops-card ops-fade-in p-5">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">Add staff</h2>
+                            <p className="text-sm text-muted-foreground">Invite an agent or admin</p>
+                        </div>
+                        <Form action="/admin/agents" method="post" className="space-y-4" options={{ preserveScroll: true }}>
+                            {({ processing, errors }) => (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Name</Label>
+                                        <Input id="name" name="name" className="rounded-xl" required />
+                                        <InputError message={errors.name} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input id="email" name="email" type="email" className="rounded-xl" required />
+                                        <InputError message={errors.email} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Role</Label>
+                                        <select
+                                            id="role"
+                                            name="role"
+                                            defaultValue="agent"
+                                            className="h-9 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
+                                        >
+                                            <option value="agent">Agent</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                        <InputError message={errors.role} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Password</Label>
+                                        <Input id="password" name="password" type="password" className="rounded-xl" required />
+                                        <InputError message={errors.password} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password_confirmation">Confirm password</Label>
+                                        <Input
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            type="password"
+                                            className="rounded-xl"
+                                            required
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="w-full rounded-xl bg-[var(--ops-teal)] hover:brightness-105"
+                                    >
+                                        {processing ? <Spinner /> : null}
+                                        Create staff member
+                                    </Button>
+                                </>
+                            )}
+                        </Form>
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Team</CardTitle>
-                            <CardDescription>Admins and agents</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                    <div className="ops-card ops-fade-in p-5">
+                        <div className="mb-4">
+                            <h2 className="text-base font-semibold text-[var(--ops-ink)]">Team</h2>
+                            <p className="text-sm text-muted-foreground">Admins and agents</p>
+                        </div>
+                        <div className="space-y-3">
                             {agents.data.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No staff members found.</p>
+                                <div className="py-12 text-center text-sm text-muted-foreground">
+                                    <Headphones className="mx-auto mb-2 size-8 opacity-40" />
+                                    No staff members found.
+                                </div>
                             ) : (
                                 agents.data.map((agent) => {
                                     const isSelf = agent.id === currentUserId;
                                     const isEditing = editingId === agent.id;
 
                                     return (
-                                        <div key={agent.id} className="rounded-xl border p-4">
+                                        <div
+                                            key={agent.id}
+                                            className="rounded-2xl border border-border/60 bg-background/50 p-4 transition hover:border-[var(--ops-teal)]/30"
+                                        >
                                             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <p className="font-medium">{agent.name}</p>
-                                                        <Badge variant="outline" className="capitalize">
+                                                        <p className="font-medium text-[var(--ops-ink)]">{agent.name}</p>
+                                                        <Badge variant="outline" className="rounded-full capitalize">
                                                             {agent.role}
                                                         </Badge>
-                                                        <Badge variant={agent.is_active ? 'secondary' : 'destructive'}>
+                                                        <Badge
+                                                            className="rounded-full"
+                                                            variant={agent.is_active ? 'secondary' : 'destructive'}
+                                                        >
                                                             {agent.is_active ? 'Active' : 'Inactive'}
                                                         </Badge>
-                                                        {agent.is_online ? <Badge variant="outline">Online</Badge> : null}
+                                                        {agent.is_online ? (
+                                                            <Badge variant="outline" className="rounded-full">
+                                                                Online
+                                                            </Badge>
+                                                        ) : null}
                                                     </div>
                                                     <p className="text-sm text-muted-foreground">{agent.email}</p>
                                                     <p className="mt-1 text-xs text-muted-foreground">
@@ -158,6 +172,7 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                         size="sm"
                                                         variant="outline"
                                                         type="button"
+                                                        className="rounded-full"
                                                         onClick={() => setEditingId(isEditing ? null : agent.id)}
                                                     >
                                                         {isEditing ? 'Cancel' : 'Edit'}
@@ -177,6 +192,7 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                                 size="sm"
                                                                 variant={agent.is_active ? 'destructive' : 'default'}
                                                                 type="submit"
+                                                                className="rounded-full"
                                                             >
                                                                 {agent.is_active ? 'Deactivate' : 'Activate'}
                                                             </Button>
@@ -201,6 +217,7 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                                     id={`name-${agent.id}`}
                                                                     name="name"
                                                                     defaultValue={agent.name}
+                                                                    className="rounded-xl"
                                                                     required
                                                                 />
                                                                 <InputError message={errors.name} />
@@ -212,6 +229,7 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                                     name="email"
                                                                     type="email"
                                                                     defaultValue={agent.email ?? ''}
+                                                                    className="rounded-xl"
                                                                     required
                                                                 />
                                                                 <InputError message={errors.email} />
@@ -223,7 +241,7 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                                     name="role"
                                                                     defaultValue={agent.role}
                                                                     disabled={isSelf}
-                                                                    className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                                                                    className="h-9 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
                                                                 >
                                                                     <option value="agent">Agent</option>
                                                                     <option value="admin">Admin</option>
@@ -231,14 +249,13 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                                 <InputError message={errors.role} />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <Label htmlFor={`password-${agent.id}`}>
-                                                                    New password
-                                                                </Label>
+                                                                <Label htmlFor={`password-${agent.id}`}>New password</Label>
                                                                 <Input
                                                                     id={`password-${agent.id}`}
                                                                     name="password"
                                                                     type="password"
                                                                     placeholder="Leave blank to keep"
+                                                                    className="rounded-xl"
                                                                 />
                                                                 <InputError message={errors.password} />
                                                             </div>
@@ -250,10 +267,15 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                                                     id={`password_confirmation-${agent.id}`}
                                                                     name="password_confirmation"
                                                                     type="password"
+                                                                    className="rounded-xl"
                                                                 />
                                                             </div>
                                                             <div className="md:col-span-2">
-                                                                <Button type="submit" disabled={processing}>
+                                                                <Button
+                                                                    type="submit"
+                                                                    disabled={processing}
+                                                                    className="rounded-xl bg-[var(--ops-teal)] hover:brightness-105"
+                                                                >
                                                                     {processing ? <Spinner /> : null}
                                                                     Save changes
                                                                 </Button>
@@ -266,23 +288,24 @@ export default function AdminAgents({ search: initialSearch, agents }: Props) {
                                     );
                                 })
                             )}
+                        </div>
 
-                            {agents.links.length > 3 ? (
-                                <div className="flex flex-wrap gap-1">
-                                    {agents.links.map((link, index) => (
-                                        <Button
-                                            key={`${link.label}-${index}`}
-                                            size="sm"
-                                            variant={link.active ? 'default' : 'ghost'}
-                                            disabled={!link.url}
-                                            onClick={() => link.url && router.visit(link.url)}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
-                                </div>
-                            ) : null}
-                        </CardContent>
-                    </Card>
+                        {agents.links.length > 3 ? (
+                            <div className="mt-4 flex flex-wrap gap-1">
+                                {agents.links.map((link, index) => (
+                                    <Button
+                                        key={`${link.label}-${index}`}
+                                        size="sm"
+                                        variant={link.active ? 'default' : 'ghost'}
+                                        disabled={!link.url}
+                                        className="rounded-full"
+                                        onClick={() => link.url && router.visit(link.url)}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             </div>
         </>
