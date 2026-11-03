@@ -3,15 +3,18 @@ import {
     Bot,
     Filter,
     MessageCircle,
+    Moon,
     Phone,
     Search,
     Settings,
+    Sun,
     Users,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Composer from '@/components/chat/composer';
 import ConversationListItem from '@/components/chat/conversation-list-item';
 import MessageThread from '@/components/chat/message-thread';
+import { useAppearance } from '@/hooks/use-appearance';
 import { useConversationChannel } from '@/hooks/use-conversation-channel';
 import { getEcho } from '@/lib/echo';
 import { initials } from '@/lib/chat-time';
@@ -62,6 +65,11 @@ export default function AdminInbox({
     const [typingLabel, setTypingLabel] = useState<string | null>(null);
     const [mobileShowChat, setMobileShowChat] = useState(Boolean(activeConversation));
     const activeIdRef = useRef(activeConversation?.id ?? null);
+    const { resolvedAppearance, updateAppearance } = useAppearance();
+
+    const toggleTheme = () => {
+        updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark');
+    };
 
     useEffect(() => {
         setConversations(initialConversations);
@@ -326,16 +334,24 @@ export default function AdminInbox({
 
             <aside
                 className={cn(
-                    'flex h-full w-full flex-col border-r border-[var(--wa-border)] bg-[var(--wa-panel)] md:w-[38%] md:max-w-[440px]',
+                    'flex h-full min-h-0 w-full flex-col overflow-hidden border-r border-[var(--wa-border)] bg-[var(--wa-panel)] md:w-[38%] md:max-w-[440px]',
                     mobileShowChat && 'hidden md:flex',
                 )}
             >
-                <header className="flex items-center justify-between px-4 py-3">
+                <header className="flex shrink-0 items-center justify-between px-4 py-3">
                     <div>
                         <h1 className="text-xl font-semibold">{brandName}</h1>
                         <p className="text-xs text-[var(--wa-muted)]">Support inbox</p>
                     </div>
                     <div className="flex items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            aria-label="Toggle theme"
+                            className="rounded-full p-2 text-[var(--wa-icon)] hover:bg-black/5 dark:hover:bg-white/5"
+                        >
+                            {resolvedAppearance === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
+                        </button>
                         {isAdmin && (
                             <button
                                 type="button"
@@ -396,7 +412,7 @@ export default function AdminInbox({
                     ))}
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto">
                     {conversations.map((conversation) => (
                         <ConversationListItem
                             key={conversation.id}
@@ -413,13 +429,13 @@ export default function AdminInbox({
 
             <section
                 className={cn(
-                    'flex h-full min-w-0 flex-1 flex-col bg-[var(--wa-chat-surface)]',
+                    'flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--wa-chat-surface)]',
                     !mobileShowChat && 'hidden md:flex',
                 )}
             >
                 {active ? (
                     <>
-                        <header className="flex items-center justify-between gap-3 border-b border-[var(--wa-border)] bg-[var(--wa-panel)] px-4 py-2.5">
+                        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--wa-border)] bg-[var(--wa-panel)] px-4 py-2.5">
                             <div className="flex min-w-0 items-center gap-3">
                                 <button
                                     type="button"
@@ -440,6 +456,18 @@ export default function AdminInbox({
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 text-[var(--wa-icon)]">
+                                <button
+                                    type="button"
+                                    onClick={toggleTheme}
+                                    aria-label="Toggle theme"
+                                    className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5"
+                                >
+                                    {resolvedAppearance === 'dark' ? (
+                                        <Sun className="size-5" />
+                                    ) : (
+                                        <Moon className="size-5" />
+                                    )}
+                                </button>
                                 <Phone className="size-5" />
                                 <button
                                     type="button"
@@ -460,7 +488,9 @@ export default function AdminInbox({
                             typingLabel={typingLabel}
                         />
 
-                        <Composer onSend={sendMessage} onTyping={notifyTyping} />
+                        <div className="shrink-0">
+                            <Composer onSend={sendMessage} onTyping={notifyTyping} />
+                        </div>
                     </>
                 ) : (
                     <div className="flex flex-1 flex-col items-center justify-center gap-2 text-[var(--wa-muted)]">

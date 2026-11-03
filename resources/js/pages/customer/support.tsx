@@ -3,17 +3,19 @@ import {
     Download,
     EllipsisVertical,
     MessageCircle,
+    Moon,
     Phone,
-    Plus,
     RefreshCw,
     Search,
     Settings,
+    Sun,
     Video,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Composer from '@/components/chat/composer';
 import ConversationListItem from '@/components/chat/conversation-list-item';
 import MessageThread from '@/components/chat/message-thread';
+import { useAppearance } from '@/hooks/use-appearance';
 import { useConversationChannel } from '@/hooks/use-conversation-channel';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
 import { initials } from '@/lib/chat-time';
@@ -43,6 +45,11 @@ export default function CustomerSupport({
     const [mobileShowChat, setMobileShowChat] = useState(true);
     const [typingLabel, setTypingLabel] = useState<string | null>(null);
     const [search, setSearch] = useState('');
+    const { resolvedAppearance, updateAppearance } = useAppearance();
+
+    const toggleTheme = () => {
+        updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark');
+    };
     const { canInstall, promptInstall } = usePwaInstall();
 
     useEffect(() => {
@@ -155,11 +162,11 @@ export default function CustomerSupport({
 
             <aside
                 className={cn(
-                    'flex h-full w-full flex-col border-r border-[var(--wa-border)] bg-[var(--wa-panel)] md:w-[38%] md:max-w-[420px]',
+                    'flex h-full min-h-0 w-full flex-col overflow-hidden border-r border-[var(--wa-border)] bg-[var(--wa-panel)] md:w-[38%] md:max-w-[420px]',
                     mobileShowChat && 'hidden md:flex',
                 )}
             >
-                <header className="flex items-center justify-between gap-2 px-4 py-3">
+                <header className="flex shrink-0 items-center justify-between gap-2 px-4 py-3">
                     <h1 className="truncate text-xl font-semibold">{brandName}</h1>
                     <div className="flex items-center gap-1 text-[var(--wa-icon)]">
                         {canInstall ? (
@@ -181,6 +188,9 @@ export default function CustomerSupport({
                         >
                             <RefreshCw className="size-5" />
                         </IconButton>
+                        <IconButton onClick={toggleTheme} label="Toggle theme">
+                            {resolvedAppearance === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
+                        </IconButton>
                         <IconButton>
                             <Search className="size-5" />
                         </IconButton>
@@ -190,7 +200,7 @@ export default function CustomerSupport({
                     </div>
                 </header>
 
-                <div className="px-3 pb-2">
+                <div className="shrink-0 px-3 pb-2">
                     <div className="flex items-center gap-2 rounded-lg bg-[var(--wa-input)] px-3 py-2">
                         <Search className="size-4 text-[var(--wa-muted)]" />
                         <input
@@ -202,7 +212,7 @@ export default function CustomerSupport({
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto">
                     {filtered && (
                         <ConversationListItem
                             conversation={conversation}
@@ -213,7 +223,7 @@ export default function CustomerSupport({
                     )}
                 </div>
 
-                <nav className="grid grid-cols-4 border-t border-[var(--wa-border)] bg-[var(--wa-panel)] py-2 text-[11px] text-[var(--wa-muted)]">
+                <nav className="grid shrink-0 grid-cols-4 border-t border-[var(--wa-border)] bg-[var(--wa-panel)] py-2 text-[11px] text-[var(--wa-muted)]">
                     <NavItem active icon={<MessageCircle className="size-5" />} label="Chats" />
                     <NavItem icon={<RefreshCw className="size-5" />} label="Status" />
                     <NavItem icon={<Phone className="size-5" />} label="Calls" />
@@ -223,11 +233,11 @@ export default function CustomerSupport({
 
             <section
                 className={cn(
-                    'flex h-full min-w-0 flex-1 flex-col bg-[var(--wa-chat-surface)]',
+                    'flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--wa-chat-surface)]',
                     !mobileShowChat && 'hidden md:flex',
                 )}
             >
-                <header className="flex items-center justify-between gap-3 border-b border-[var(--wa-border)] bg-[var(--wa-panel)] px-4 py-2.5">
+                <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--wa-border)] bg-[var(--wa-panel)] px-4 py-2.5">
                     <div className="flex min-w-0 items-center gap-3">
                         <button
                             type="button"
@@ -262,6 +272,9 @@ export default function CustomerSupport({
                         <IconButton>
                             <Search className="size-5" />
                         </IconButton>
+                        <IconButton onClick={toggleTheme} label="Toggle theme">
+                            {resolvedAppearance === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
+                        </IconButton>
                     </div>
                 </header>
 
@@ -272,15 +285,8 @@ export default function CustomerSupport({
                     typingLabel={typingLabel}
                 />
 
-                <div className="relative">
+                <div className="relative shrink-0">
                     <Composer onSend={sendMessage} onTyping={notifyTyping} />
-                    <button
-                        type="button"
-                        className="absolute -top-14 right-4 flex size-12 items-center justify-center rounded-full bg-[var(--wa-accent)] text-white shadow-lg"
-                        aria-label="New"
-                    >
-                        <Plus className="size-6" />
-                    </button>
                 </div>
             </section>
         </>
@@ -294,14 +300,17 @@ function csrfToken(): string {
 function IconButton({
     children,
     onClick,
+    label,
 }: {
     children: React.ReactNode;
     onClick?: () => void;
+    label?: string;
 }) {
     return (
         <button
             type="button"
             onClick={onClick}
+            aria-label={label}
             className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5"
         >
             {children}

@@ -1,4 +1,4 @@
-import { Mic, Paperclip, SendHorizontal, Smile } from 'lucide-react';
+import { Paperclip, SendHorizontal, Smile } from 'lucide-react';
 import { FormEvent, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -48,7 +48,10 @@ export default function Composer({ disabled, onSend, onTyping }: Props) {
     };
 
     return (
-        <form onSubmit={submit} className="flex items-end gap-2 bg-[var(--wa-panel)] px-3 py-2.5">
+        <form
+            onSubmit={submit}
+            className="flex items-end gap-2 bg-[var(--wa-panel)] py-2.5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))]"
+        >
             <button
                 type="button"
                 className="mb-1 rounded-full p-2 text-[var(--wa-icon)] hover:bg-black/5 dark:hover:bg-white/5"
@@ -94,7 +97,7 @@ export default function Composer({ disabled, onSend, onTyping }: Props) {
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder="Type a message"
                     disabled={disabled || sending}
-                    className="w-full rounded-lg border-0 bg-[var(--wa-input)] px-4 py-2.5 text-[15px] text-[var(--wa-fg)] outline-none placeholder:text-[var(--wa-muted)]"
+                    className="w-full rounded-lg border-0 bg-[var(--wa-input)] px-4 py-2.5 text-base text-[var(--wa-fg)] outline-none placeholder:text-[var(--wa-muted)]"
                 />
             </div>
 
@@ -104,9 +107,9 @@ export default function Composer({ disabled, onSend, onTyping }: Props) {
                 className={cn(
                     'mb-0.5 flex size-11 items-center justify-center rounded-full bg-[var(--wa-accent)] text-white transition disabled:opacity-50',
                 )}
-                aria-label={body.trim() || attachment ? 'Send' : 'Voice message'}
+                aria-label="Send"
             >
-                {body.trim() || attachment ? <SendHorizontal className="size-5" /> : <Mic className="size-5" />}
+                <SendHorizontal className="size-5" />
             </button>
         </form>
     );

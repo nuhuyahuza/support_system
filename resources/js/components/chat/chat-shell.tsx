@@ -1,7 +1,5 @@
 import { ReactNode, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import { Moon, Sun } from 'lucide-react';
-import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -27,7 +25,6 @@ function pingPresence(online: boolean) {
 }
 
 export default function ChatShell({ children, className }: Props) {
-    const { resolvedAppearance, updateAppearance } = useAppearance();
     const user = usePage().props.auth?.user;
 
     useEffect(() => {
@@ -49,19 +46,10 @@ export default function ChatShell({ children, className }: Props) {
     return (
         <div
             className={cn(
-                'wa-app flex h-dvh w-full overflow-hidden bg-[var(--wa-app-bg)] text-[var(--wa-fg)]',
-                'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]',
+                'wa-app flex h-dvh w-full overflow-hidden bg-[var(--wa-app-bg)] text-[var(--wa-fg)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
                 className,
             )}
         >
-            <button
-                type="button"
-                onClick={() => updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}
-                className="fixed right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-50 flex size-9 items-center justify-center rounded-full bg-[var(--wa-panel)] text-[var(--wa-icon)] shadow-md"
-                aria-label="Toggle theme"
-            >
-                {resolvedAppearance === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            </button>
             {children}
         </div>
     );

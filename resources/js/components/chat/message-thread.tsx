@@ -23,7 +23,7 @@ export default function MessageThread({
     }, [messages.length, typingLabel]);
 
     return (
-        <div className="wa-chat-bg relative flex-1 overflow-y-auto px-4 py-2 md:px-16">
+        <div className="wa-chat-bg relative min-h-0 flex-1 overflow-y-auto py-2 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] md:px-16">
             <PinnedAnnouncement announcement={announcement ?? null} />
 
             <div className="flex flex-col gap-1.5 pb-4">
