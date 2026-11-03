@@ -244,6 +244,7 @@
     --ops-meta: oklch(0.52 0.03 240);
 }
 
+.dark.ops-admin,
 .dark .ops-admin {
     --background: oklch(0.18 0.025 250);
     --foreground: oklch(0.95 0.01 220);
@@ -289,6 +290,7 @@
     background-attachment: fixed;
 }
 
+.dark.ops-admin,
 .dark .ops-admin {
     background-image:
         radial-gradient(ellipse 80% 55% at 8% -10%, oklch(0.35 0.06 190 / 0.35), transparent 55%),

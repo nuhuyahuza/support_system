@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -14,7 +13,6 @@ export function NavMain({ items }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-sidebar-foreground/40">Support</SidebarGroupLabel>
             <SidebarMenu className="gap-1">
                 {items.map((item) => {
                     const active =
@@ -28,7 +26,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                                 asChild
                                 isActive={active}
                                 tooltip={{ children: item.title }}
-                                className="rounded-xl data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-sm"
+                                className="rounded-xl data-[active=true]:bg-[var(--ops-teal,oklch(0.58_0.12_190))] data-[active=true]:font-medium data-[active=true]:text-white data-[active=true]:shadow-sm data-[active=true]:hover:bg-[var(--ops-teal,oklch(0.58_0.12_190))] data-[active=true]:hover:text-white [&_svg]:text-current"
                             >
                                 <Link href={item.href} prefetch>
                                     {item.icon && <item.icon />}

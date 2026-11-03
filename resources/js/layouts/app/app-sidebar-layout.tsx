@@ -1,4 +1,5 @@
 import { usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -12,6 +13,16 @@ export default function AppSidebarLayout({
 }: AppLayoutProps) {
     const { component } = usePage();
     const isConversations = component === 'admin/conversations';
+
+    // Portaled mobile Sheet lives under document.body; put ops tokens on <html>
+    // so sidebar CSS variables (and active nav colors) still apply.
+    useEffect(() => {
+        document.documentElement.classList.add('ops-admin');
+
+        return () => {
+            document.documentElement.classList.remove('ops-admin');
+        };
+    }, []);
 
     return (
         <div className="ops-admin min-h-svh">
