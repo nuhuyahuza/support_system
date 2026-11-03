@@ -1,36 +1,32 @@
-import { Head } from '@inertiajs/react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import { dashboard } from '@/routes';
+import { Head, Link } from '@inertiajs/react';
+import ChatShell from '@/components/chat/chat-shell';
 
 export default function Dashboard() {
     return (
-        <>
+        <ChatShell>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+            <div className="mx-auto flex h-full w-full max-w-3xl flex-col justify-center px-6">
+                <div className="rounded-2xl bg-[var(--wa-panel)] p-8 shadow-lg">
+                    <h1 className="text-2xl font-semibold">Dashboard</h1>
+                    <p className="mt-2 text-sm text-[var(--wa-muted)]">
+                        Staff workspace entry point. Open the support inbox to manage conversations.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                        <Link
+                            href="/admin/chats"
+                            className="inline-flex items-center justify-center rounded-lg bg-[var(--wa-accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--wa-accent-strong)]"
+                        >
+                            Open inbox
+                        </Link>
+                        <Link
+                            href="/settings/profile"
+                            className="inline-flex items-center justify-center rounded-lg bg-[var(--wa-input)] px-4 py-2 text-sm font-medium text-[var(--wa-fg)] hover:bg-[var(--wa-hover)]"
+                        >
+                            Account settings
+                        </Link>
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                 </div>
             </div>
-        </>
+        </ChatShell>
     );
 }
-
-Dashboard.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-        },
-    ],
-};

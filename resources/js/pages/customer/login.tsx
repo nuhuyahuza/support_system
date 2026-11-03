@@ -1,10 +1,10 @@
 import { Form, Head, router } from '@inertiajs/react';
+import { AuthFormPanel, AuthScreen } from '@/components/chat/auth-panel';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import ChatShell from '@/components/chat/chat-shell';
 
 type Props = {
     otpEnabled: boolean;
@@ -24,35 +24,27 @@ export default function CustomerLogin({
     const isNameStep = step === 'name' && Boolean(phone);
 
     return (
-        <ChatShell>
+        <>
             <Head title="Sign in" />
-            <div className="mx-auto flex h-full w-full max-w-md flex-col justify-center px-6">
-                <div className="mb-8 text-center">
-                    <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-[var(--wa-accent)] text-2xl font-bold text-white">
-                        {brandName.slice(0, 1).toUpperCase()}
+            <AuthScreen
+                brandName={brandName}
+                description={
+                    isNameStep
+                        ? 'What should we call you?'
+                        : 'Enter your phone number to continue your chat history.'
+                }
+                beforePanel={
+                    <div className="mb-4 flex items-center justify-center gap-2">
+                        <StepDot active={!isNameStep} done={isNameStep} label="1" />
+                        <div className="h-px w-8 bg-[var(--wa-border)]" />
+                        <StepDot active={isNameStep} done={false} label="2" />
                     </div>
-                    <h1 className="text-2xl font-semibold">{brandName}</h1>
-                    <p className="mt-2 text-sm text-[var(--wa-muted)]">
-                        {isNameStep
-                            ? 'What should we call you?'
-                            : 'Enter your phone number to continue your chat history.'}
-                    </p>
-                </div>
-
-                <div className="mb-4 flex items-center justify-center gap-2">
-                    <StepDot active={!isNameStep} done={isNameStep} label="1" />
-                    <div className="h-px w-8 bg-[var(--wa-border)]" />
-                    <StepDot active={isNameStep} done={false} label="2" />
-                </div>
-
+                }
+            >
                 {!isNameStep ? (
-                    <Form
-                        action="/login/phone"
-                        method="post"
-                        className="rounded-2xl bg-[var(--wa-panel)] p-6 shadow-lg"
-                    >
+                    <Form action="/login/phone" method="post">
                         {({ processing, errors }) => (
-                            <div className="space-y-4">
+                            <AuthFormPanel className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="phone">Phone number</Label>
                                     <Input
@@ -86,17 +78,13 @@ export default function CustomerLogin({
                                     {processing && <Spinner />}
                                     Continue
                                 </Button>
-                            </div>
+                            </AuthFormPanel>
                         )}
                     </Form>
                 ) : (
-                    <Form
-                        action="/login"
-                        method="post"
-                        className="rounded-2xl bg-[var(--wa-panel)] p-6 shadow-lg"
-                    >
+                    <Form action="/login" method="post">
                         {({ processing, errors }) => (
-                            <div className="space-y-4">
+                            <AuthFormPanel className="space-y-4">
                                 <input type="hidden" name="phone" value={phone ?? ''} />
 
                                 <div className="rounded-lg bg-[var(--wa-input)] px-3 py-2 text-sm">
@@ -141,13 +129,12 @@ export default function CustomerLogin({
                                 >
                                     Use a different number
                                 </button>
-                            </div>
+                            </AuthFormPanel>
                         )}
                     </Form>
                 )}
-
-            </div>
-        </ChatShell>
+            </AuthScreen>
+        </>
     );
 }
 

@@ -1,10 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
+import { AuthFormPanel, AuthScreen } from '@/components/chat/auth-panel';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import ChatShell from '@/components/chat/chat-shell';
 
 type Props = {
     phone: string;
@@ -15,24 +15,23 @@ type Props = {
 
 export default function CustomerVerify({ phone, status, brandName }: Props) {
     return (
-        <ChatShell>
+        <>
             <Head title="Verify phone" />
-            <div className="mx-auto flex h-full w-full max-w-md flex-col justify-center px-6">
-                <div className="mb-8 text-center">
-                    <h1 className="text-2xl font-semibold">{brandName}</h1>
-                    <p className="mt-2 text-sm text-[var(--wa-muted)]">
-                        Enter the code sent to <span className="font-medium text-[var(--wa-fg)]">{phone}</span>
-                    </p>
-                    {status && <p className="mt-2 text-sm text-[var(--wa-accent)]">{status}</p>}
-                </div>
-
-                <Form
-                    action="/verify"
-                    method="post"
-                    className="rounded-2xl bg-[var(--wa-panel)] p-6 shadow-lg"
-                >
+            <AuthScreen
+                brandName={brandName}
+                description={
+                    <>
+                        Enter the code sent to{' '}
+                        <span className="font-medium text-[var(--wa-fg)]">{phone}</span>
+                    </>
+                }
+            >
+                {status ? (
+                    <p className="-mt-4 mb-4 text-center text-sm text-[var(--wa-accent)]">{status}</p>
+                ) : null}
+                <Form action="/verify" method="post">
                     {({ processing, errors }) => (
-                        <div className="space-y-4">
+                        <AuthFormPanel className="space-y-4">
                             <input type="hidden" name="phone" value={phone} />
                             <div className="space-y-2">
                                 <Label htmlFor="code">Verification code</Label>
@@ -55,15 +54,16 @@ export default function CustomerVerify({ phone, status, brandName }: Props) {
                                 {processing && <Spinner />}
                                 Verify & chat
                             </Button>
-                            <a href="/login" className="block text-center text-sm text-[var(--wa-muted)] underline">
+                            <a
+                                href="/login"
+                                className="block text-center text-sm text-[var(--wa-muted)] underline"
+                            >
                                 Use a different number
                             </a>
-                        </div>
+                        </AuthFormPanel>
                     )}
                 </Form>
-            </div>
-        </ChatShell>
+            </AuthScreen>
+        </>
     );
 }
-
-CustomerVerify.layout = null;

@@ -1,12 +1,10 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/profile';
 import type { Auth } from '@/types';
 
 type PageProps = {
@@ -20,86 +18,65 @@ export default function Profile() {
         <>
             <Head title="Profile settings" />
 
-            <h1 className="sr-only">Profile settings</h1>
-
             <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title="Profile"
-                    description="Update your name and email address"
-                />
+                <div>
+                    <h2 className="text-lg font-medium">Profile</h2>
+                    <p className="text-sm text-[var(--wa-muted)]">Update your name and email address</p>
+                </div>
 
                 <Form
                     {...ProfileController.update.form()}
                     options={{
                         preserveScroll: true,
                     }}
-                    className="space-y-6"
+                    className="space-y-4"
                 >
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
-
                                 <Input
                                     id="name"
-                                    className="mt-1 block w-full"
+                                    className="block w-full"
                                     defaultValue={auth.user.name}
                                     name="name"
                                     required
                                     autoComplete="name"
                                     placeholder="Full name"
                                 />
-
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
+                                <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
-
                                 <Input
                                     id="email"
                                     type="email"
-                                    className="mt-1 block w-full"
+                                    className="block w-full"
                                     defaultValue={auth.user.email ?? ''}
                                     name="email"
                                     required
                                     autoComplete="username"
                                     placeholder="Email address"
                                 />
-
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.email}
-                                />
+                                <InputError message={errors.email} />
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-profile-button"
-                                >
-                                    Save
-                                </Button>
-                            </div>
+                            <Button
+                                disabled={processing}
+                                className="bg-[var(--wa-accent)] text-white hover:bg-[var(--wa-accent-strong)]"
+                                data-test="update-profile-button"
+                            >
+                                Save
+                            </Button>
                         </>
                     )}
                 </Form>
             </div>
 
-            <DeleteUser />
+            <div className="border-t border-[var(--wa-border)] pt-6">
+                <DeleteUser />
+            </div>
         </>
     );
 }
-
-Profile.layout = {
-    breadcrumbs: [
-        {
-            title: 'Profile settings',
-            href: edit(),
-        },
-    ],
-};
