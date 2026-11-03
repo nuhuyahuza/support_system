@@ -12,6 +12,7 @@ use App\Jobs\ProcessAiFallback;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Support\SafeBroadcast;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -85,7 +86,7 @@ class ChatService
             return $message->load('sender:id,name,role');
         });
 
-        broadcast(new MessageSent($message))->toOthers();
+        SafeBroadcast::event(new MessageSent($message), toOthers: true);
 
         if ($senderType === MessageSenderType::Customer) {
             ProcessAiFallback::dispatch($conversation->id, $message->id)
@@ -112,7 +113,7 @@ class ChatService
         ]);
 
         $message->load('sender:id,name,role');
-        broadcast(new MessageSent($message))->toOthers();
+        SafeBroadcast::event(new MessageSent($message), toOthers: true);
 
         return $message;
     }
@@ -141,7 +142,7 @@ class ChatService
 
         Message::query()->whereIn('id', $ids)->update(['read_at' => now()]);
 
-        broadcast(new MessageRead($conversation->id, $ids))->toOthers();
+        SafeBroadcast::event(new MessageRead($conversation->id, $ids), toOthers: true);
     }
 
     /**

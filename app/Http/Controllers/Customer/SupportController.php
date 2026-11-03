@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Chat\ChatService;
 use App\Services\Presence\PresenceService;
 use App\Services\Settings\SupportSettings;
+use App\Support\SafeBroadcast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -99,12 +100,12 @@ class SupportController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        broadcast(new UserTyping(
+        SafeBroadcast::event(new UserTyping(
             $conversation->id,
             $user->id,
             $user->name,
             (bool) $request->boolean('typing', true),
-        ))->toOthers();
+        ), toOthers: true);
 
         return response()->json(['ok' => true]);
     }
