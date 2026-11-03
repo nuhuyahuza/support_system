@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
  * @property MessageType $type
  * @property string|null $attachment_path
  * @property string|null $attachment_name
+ * @property Carbon|null $delivered_at
  * @property Carbon|null $read_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -36,6 +37,7 @@ class Message extends Model
         'type',
         'attachment_path',
         'attachment_name',
+        'delivered_at',
         'read_at',
     ];
 
@@ -46,6 +48,7 @@ class Message extends Model
         return [
             'sender_type' => MessageSenderType::class,
             'type' => MessageType::class,
+            'delivered_at' => 'datetime',
             'read_at' => 'datetime',
         ];
     }

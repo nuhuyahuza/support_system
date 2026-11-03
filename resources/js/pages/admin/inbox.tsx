@@ -126,10 +126,21 @@ export default function AdminInbox({
                     });
                 }
             },
+            onDelivered: ({ message_ids, delivered_at }) => {
+                setMessages((current) =>
+                    current.map((message) =>
+                        message_ids.includes(message.id) && !message.delivered_at
+                            ? { ...message, delivered_at }
+                            : message,
+                    ),
+                );
+            },
             onRead: ({ message_ids, read_at }) => {
                 setMessages((current) =>
                     current.map((message) =>
-                        message_ids.includes(message.id) ? { ...message, read_at } : message,
+                        message_ids.includes(message.id)
+                            ? { ...message, read_at, delivered_at: message.delivered_at ?? read_at }
+                            : message,
                     ),
                 );
             },
@@ -157,6 +168,17 @@ export default function AdminInbox({
             if (activeIdRef.current === message.conversation_id) {
                 appendMessage(message);
                 return;
+            }
+
+            // Alert received while not viewing this chat → delivered (2 grey checks)
+            if (message.sender_type === 'customer') {
+                void fetch(`/admin/chats/${message.conversation_id}/delivered`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        Accept: 'application/json',
+                    },
+                });
             }
 
             setConversations((current) => {

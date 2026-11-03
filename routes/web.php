@@ -56,6 +56,7 @@ Route::middleware(['auth', EnsureCustomer::class])->prefix('support')->name('sup
     Route::get('/', [SupportController::class, 'index'])->name('index');
     Route::get('/conversations/{conversation}/messages', [SupportController::class, 'messages'])->name('messages');
     Route::post('/conversations/{conversation}/messages', [SupportController::class, 'storeMessage'])->name('messages.store');
+    Route::post('/conversations/{conversation}/delivered', [SupportController::class, 'markDelivered'])->name('messages.delivered');
     Route::post('/conversations/{conversation}/read', [SupportController::class, 'markRead'])->name('messages.read');
     Route::post('/conversations/{conversation}/typing', [SupportController::class, 'typing'])->name('typing');
 });
@@ -65,6 +66,7 @@ Route::middleware(['auth', EnsureStaff::class])->prefix('admin')->name('admin.')
     Route::get('/chats', [AdminChatController::class, 'index'])->name('chats.index');
     Route::get('/chats/{conversation}', [AdminChatController::class, 'show'])->name('chats.show');
     Route::post('/chats/{conversation}/messages', [AdminChatController::class, 'storeMessage'])->name('chats.messages.store');
+    Route::post('/chats/{conversation}/delivered', [AdminChatController::class, 'markDelivered'])->name('chats.delivered');
     Route::post('/chats/{conversation}/read', [AdminChatController::class, 'markRead'])->name('chats.read');
     Route::post('/chats/{conversation}/typing', [AdminChatController::class, 'typing'])->name('chats.typing');
     Route::post('/chats/{conversation}/close', [AdminChatController::class, 'close'])->name('chats.close');

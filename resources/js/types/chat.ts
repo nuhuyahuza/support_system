@@ -9,6 +9,7 @@ export type ChatMessage = {
     attachment_path: string | null;
     attachment_name: string | null;
     attachment_url: string | null;
+    delivered_at: string | null;
     read_at: string | null;
     created_at: string | null;
 };

@@ -74,10 +74,21 @@ export default function CustomerSupport({
                     });
                 }
             },
+            onDelivered: ({ message_ids, delivered_at }) => {
+                setMessages((current) =>
+                    current.map((message) =>
+                        message_ids.includes(message.id) && !message.delivered_at
+                            ? { ...message, delivered_at }
+                            : message,
+                    ),
+                );
+            },
             onRead: ({ message_ids, read_at }) => {
                 setMessages((current) =>
                     current.map((message) =>
-                        message_ids.includes(message.id) ? { ...message, read_at } : message,
+                        message_ids.includes(message.id)
+                            ? { ...message, read_at, delivered_at: message.delivered_at ?? read_at }
+                            : message,
                     ),
                 );
             },

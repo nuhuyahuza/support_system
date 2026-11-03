@@ -55,6 +55,8 @@ export default function MessageBubble({ message, outgoing }: Props) {
                     {outgoing && (
                         message.read_at ? (
                             <CheckCheck className="size-3.5 text-[#53bdeb]" />
+                        ) : message.delivered_at ? (
+                            <CheckCheck className="size-3.5 text-[var(--wa-meta)]" />
                         ) : (
                             <Check className="size-3.5 text-[var(--wa-meta)]" />
                         )

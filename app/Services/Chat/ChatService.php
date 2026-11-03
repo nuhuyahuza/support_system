@@ -6,6 +6,7 @@ use App\Enums\ConversationStatus;
 use App\Enums\MessageSenderType;
 use App\Enums\MessageType;
 use App\Enums\UserRole;
+use App\Events\MessageDelivered;
 use App\Events\MessageRead;
 use App\Events\MessageSent;
 use App\Jobs\ProcessAiFallback;
@@ -118,21 +119,13 @@ class ChatService
         return $message;
     }
 
-    public function markRead(Conversation $conversation, User $reader): void
+    public function markDelivered(Conversation $conversation, User $reader): void
     {
         $query = Message::query()
             ->where('conversation_id', $conversation->id)
-            ->whereNull('read_at');
+            ->whereNull('delivered_at');
 
-        if ($reader->isCustomer()) {
-            $query->whereIn('sender_type', [
-                MessageSenderType::Agent->value,
-                MessageSenderType::Ai->value,
-                MessageSenderType::System->value,
-            ]);
-        } else {
-            $query->where('sender_type', MessageSenderType::Customer->value);
-        }
+        $this->applyIncomingSenderFilter($query, $reader);
 
         $ids = $query->pluck('id')->all();
 
@@ -140,9 +133,53 @@ class ChatService
             return;
         }
 
-        Message::query()->whereIn('id', $ids)->update(['read_at' => now()]);
+        Message::query()->whereIn('id', $ids)->update(['delivered_at' => now()]);
+
+        SafeBroadcast::event(new MessageDelivered($conversation->id, $ids), toOthers: true);
+    }
+
+    public function markRead(Conversation $conversation, User $reader): void
+    {
+        $query = Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->whereNull('read_at');
+
+        $this->applyIncomingSenderFilter($query, $reader);
+
+        $ids = $query->pluck('id')->all();
+
+        if ($ids === []) {
+            return;
+        }
+
+        $now = now();
+
+        Message::query()
+            ->whereIn('id', $ids)
+            ->whereNull('delivered_at')
+            ->update(['delivered_at' => $now]);
+
+        Message::query()->whereIn('id', $ids)->update(['read_at' => $now]);
 
         SafeBroadcast::event(new MessageRead($conversation->id, $ids), toOthers: true);
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder<\App\Models\Message>  $query
+     */
+    private function applyIncomingSenderFilter($query, User $reader): void
+    {
+        if ($reader->isCustomer()) {
+            $query->whereIn('sender_type', [
+                MessageSenderType::Agent->value,
+                MessageSenderType::Ai->value,
+                MessageSenderType::System->value,
+            ]);
+
+            return;
+        }
+
+        $query->where('sender_type', MessageSenderType::Customer->value);
     }
 
     /**
@@ -219,6 +256,7 @@ class ChatService
             'attachment_path' => $message->attachment_path,
             'attachment_name' => $message->attachment_name,
             'attachment_url' => $message->attachment_url,
+            'delivered_at' => $message->delivered_at?->toIso8601String(),
             'read_at' => $message->read_at?->toIso8601String(),
             'created_at' => $message->created_at?->toIso8601String(),
         ];

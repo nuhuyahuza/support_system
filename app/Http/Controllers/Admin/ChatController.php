@@ -59,6 +59,21 @@ class ChatController extends Controller
             ? Conversation::query()->with(['customer', 'assignedAgent'])->find($activeId)
             : null;
 
+        // Opening the inbox delivers pending customer messages (2 grey checks)
+        // without marking them read unless the conversation is active.
+        $undeliveredConversationIds = Message::query()
+            ->whereNull('delivered_at')
+            ->where('sender_type', MessageSenderType::Customer->value)
+            ->distinct()
+            ->pluck('conversation_id');
+
+        foreach ($undeliveredConversationIds as $conversationId) {
+            $conversation = Conversation::query()->find($conversationId);
+            if ($conversation) {
+                $chat->markDelivered($conversation, $user);
+            }
+        }
+
         $messages = [];
         if ($active) {
             $this->authorize('view', $active);
@@ -132,6 +147,14 @@ class ChatController extends Controller
         return response()->json([
             'message' => $chat->serializeMessage($message),
         ]);
+    }
+
+    public function markDelivered(Request $request, Conversation $conversation, ChatService $chat): JsonResponse
+    {
+        $this->authorize('view', $conversation);
+        $chat->markDelivered($conversation, $request->user());
+
+        return response()->json(['ok' => true]);
     }
 
     public function markRead(Request $request, Conversation $conversation, ChatService $chat): JsonResponse

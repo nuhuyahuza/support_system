@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Message;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\Auth\CustomerAuthService;
@@ -49,6 +50,115 @@ test('agent can view inbox and reply', function () {
         ])
         ->assertOk()
         ->assertJsonPath('message.body', 'We can help');
+});
+
+test('agent deliver endpoint sets delivered_at without read_at', function () {
+    $auth = app(CustomerAuthService::class);
+    $customer = $auth->findOrCreateCustomer('0244111222', 'Deliver Customer');
+    $auth->login($customer);
+
+    $conversation = $customer->conversation;
+
+    $this->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'Need help',
+    ])->assertOk();
+
+    $message = Message::query()->where('conversation_id', $conversation->id)->latest('id')->first();
+    expect($message->delivered_at)->toBeNull()
+        ->and($message->read_at)->toBeNull();
+
+    $agent = User::query()->where('role', UserRole::Agent)->first();
+
+    $this->actingAs($agent)
+        ->postJson("/admin/chats/{$conversation->id}/delivered")
+        ->assertOk();
+
+    $message->refresh();
+
+    expect($message->delivered_at)->not->toBeNull()
+        ->and($message->read_at)->toBeNull();
+});
+
+test('marking messages read also sets delivered_at', function () {
+    $auth = app(CustomerAuthService::class);
+    $customer = $auth->findOrCreateCustomer('0244333444', 'Read Customer');
+    $auth->login($customer);
+
+    $conversation = $customer->conversation;
+
+    $this->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'Please reply',
+    ])->assertOk();
+
+    $message = Message::query()->where('conversation_id', $conversation->id)->latest('id')->first();
+
+    $agent = User::query()->where('role', UserRole::Agent)->first();
+
+    $this->actingAs($agent)
+        ->postJson("/admin/chats/{$conversation->id}/read")
+        ->assertOk();
+
+    $message->refresh();
+
+    expect($message->read_at)->not->toBeNull()
+        ->and($message->delivered_at)->not->toBeNull();
+});
+
+test('message serialization includes delivered_at', function () {
+    $auth = app(CustomerAuthService::class);
+    $customer = $auth->findOrCreateCustomer('0244555666', 'Serialize Customer');
+    $auth->login($customer);
+
+    $conversation = $customer->conversation;
+
+    $response = $this->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'Checking payload',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('message.body', 'Checking payload')
+        ->assertJsonPath('message.delivered_at', null)
+        ->assertJsonStructure([
+            'message' => [
+                'id',
+                'delivered_at',
+                'read_at',
+                'body',
+            ],
+        ]);
+});
+
+test('opening inbox delivers pending customer messages without reading inactive chats', function () {
+    $auth = app(CustomerAuthService::class);
+    $customerA = $auth->findOrCreateCustomer('0244777001', 'Inbox A');
+    $customerB = $auth->findOrCreateCustomer('0244777002', 'Inbox B');
+
+    $auth->login($customerA);
+    $this->postJson("/support/conversations/{$customerA->conversation->id}/messages", [
+        'body' => 'From A',
+    ])->assertOk();
+
+    $auth->login($customerB);
+    $this->postJson("/support/conversations/{$customerB->conversation->id}/messages", [
+        'body' => 'From B',
+    ])->assertOk();
+
+    $messageA = Message::query()->where('conversation_id', $customerA->conversation->id)->latest('id')->first();
+    $messageB = Message::query()->where('conversation_id', $customerB->conversation->id)->latest('id')->first();
+
+    $agent = User::query()->where('role', UserRole::Agent)->first();
+
+    $this->actingAs($agent)
+        ->get('/admin/chats?conversation='.$customerA->conversation->id)
+        ->assertOk();
+
+    $messageA->refresh();
+    $messageB->refresh();
+
+    expect($messageA->delivered_at)->not->toBeNull()
+        ->and($messageA->read_at)->not->toBeNull()
+        ->and($messageB->delivered_at)->not->toBeNull()
+        ->and($messageB->read_at)->toBeNull();
 });
 
 test('admin can update support settings', function () {

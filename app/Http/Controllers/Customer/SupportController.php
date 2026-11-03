@@ -85,6 +85,14 @@ class SupportController extends Controller
         ]);
     }
 
+    public function markDelivered(Request $request, Conversation $conversation, ChatService $chat): JsonResponse
+    {
+        $this->authorize('view', $conversation);
+        $chat->markDelivered($conversation, $request->user());
+
+        return response()->json(['ok' => true]);
+    }
+
     public function markRead(Request $request, Conversation $conversation, ChatService $chat): JsonResponse
     {
         $this->authorize('view', $conversation);

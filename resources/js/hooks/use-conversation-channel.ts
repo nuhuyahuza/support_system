@@ -9,6 +9,7 @@ import type { ChatMessage } from '@/types/chat';
 
 type Handlers = {
     onMessage?: (message: ChatMessage) => void;
+    onDelivered?: (payload: { conversation_id: number; message_ids: number[]; delivered_at: string }) => void;
     onRead?: (payload: { conversation_id: number; message_ids: number[]; read_at: string }) => void;
     onTyping?: (payload: { conversation_id: number; user_id: number; name: string; typing: boolean }) => void;
 };
@@ -59,6 +60,10 @@ export function useConversationChannel(
                 lastMessageIdRef.current = Math.max(lastMessageIdRef.current, payload.message.id);
             }
             handlersRef.current.onMessage?.(payload.message);
+        });
+
+        channel.listen('.message.delivered', (payload: { conversation_id: number; message_ids: number[]; delivered_at: string }) => {
+            handlersRef.current.onDelivered?.(payload);
         });
 
         channel.listen('.message.read', (payload: { conversation_id: number; message_ids: number[]; read_at: string }) => {
