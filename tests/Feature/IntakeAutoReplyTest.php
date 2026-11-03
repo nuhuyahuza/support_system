@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\SupportIntake;
 use App\Models\User;
 use App\Services\Auth\CustomerAuthService;
+use App\Services\Chat\IntakeAutoReplyService;
 use Illuminate\Support\Facades\Queue;
 
 beforeEach(function () {
@@ -16,6 +17,17 @@ beforeEach(function () {
     Setting::setValue('otp_enabled', false);
     Setting::setValue('ai_enabled', false);
 });
+
+function completePhoneAndData($test, $conversation, string $phoneData = '0241111222 5'): void
+{
+    $test->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'Hi',
+    ])->assertOk();
+
+    $test->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => $phoneData,
+    ])->assertOk();
+}
 
 test('first customer message receives greeting and asks for phone and data size', function () {
     Queue::fake();
@@ -82,7 +94,37 @@ test('invalid intake format re-asks and does not store a row', function () {
     Queue::assertNotPushed(ProcessAiFallback::class);
 });
 
-test('valid intake stores row and thanks customer when ai is off', function () {
+test('valid phone and data asks for issue choice without storing yet', function () {
+    Queue::fake();
+
+    $auth = app(CustomerAuthService::class);
+    $customer = $auth->findOrCreateCustomer('0244000010', 'Issue Prompt');
+    $auth->login($customer);
+    $conversation = $customer->conversation;
+
+    completePhoneAndData($this, $conversation, '0241111222 5');
+
+    $conversation->refresh();
+
+    expect($conversation->intake_status)->toBe(IntakeStatus::AwaitingIssue)
+        ->and($conversation->intake_phone)->toBe('0241111222')
+        ->and($conversation->intake_data_size)->toBe(5)
+        ->and(SupportIntake::query()->where('conversation_id', $conversation->id)->count())->toBe(0);
+
+    $prompt = Message::query()
+        ->where('conversation_id', $conversation->id)
+        ->where('sender_type', MessageSenderType::System->value)
+        ->latest('id')
+        ->first();
+
+    expect($prompt?->body)->toContain('main issue')
+        ->and($prompt?->body)->toContain('1 -')
+        ->and($prompt?->body)->toContain('2 -');
+
+    Queue::assertNotPushed(ProcessAiFallback::class);
+});
+
+test('choice 1 stores bought-not-received issue and thanks when ai is off', function () {
     Queue::fake();
     Setting::setValue('ai_enabled', false);
 
@@ -91,22 +133,23 @@ test('valid intake stores row and thanks customer when ai is off', function () {
     $auth->login($customer);
     $conversation = $customer->conversation;
 
-    $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => 'Hi',
-    ])->assertOk();
+    completePhoneAndData($this, $conversation, '0241111222 5');
 
     $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => '0241111222 5',
+        'body' => '1',
     ])->assertOk();
 
     $conversation->refresh();
 
-    expect($conversation->intake_status)->toBe(IntakeStatus::Completed);
+    expect($conversation->intake_status)->toBe(IntakeStatus::Completed)
+        ->and($conversation->intake_phone)->toBeNull()
+        ->and($conversation->intake_data_size)->toBeNull();
 
     $this->assertDatabaseHas('support_intakes', [
         'conversation_id' => $conversation->id,
         'phone' => '0241111222',
         'data_size' => 5,
+        'issue' => IntakeAutoReplyService::BOUGHT_NOT_RECEIVED,
     ]);
 
     $thankYou = Message::query()
@@ -121,7 +164,7 @@ test('valid intake stores row and thanks customer when ai is off', function () {
     Queue::assertNotPushed(ProcessAiFallback::class);
 });
 
-test('valid intake thanks customer and dispatches ai when ai is on', function () {
+test('choice 2 then free text stores custom issue and dispatches ai when on', function () {
     Queue::fake();
     Setting::setValue('ai_enabled', true);
     Setting::setValue('ai_provider', 'openai');
@@ -131,12 +174,16 @@ test('valid intake thanks customer and dispatches ai when ai is on', function ()
     $auth->login($customer);
     $conversation = $customer->conversation;
 
-    $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => 'Hi',
-    ])->assertOk();
+    completePhoneAndData($this, $conversation, '0243333444 10');
 
     $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => '0243333444 10',
+        'body' => '2',
+    ])->assertOk();
+
+    expect($conversation->fresh()->intake_status)->toBe(IntakeStatus::AwaitingOtherIssue);
+
+    $this->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'Wrong package delivered',
     ])->assertOk();
 
     $conversation->refresh();
@@ -147,6 +194,7 @@ test('valid intake thanks customer and dispatches ai when ai is on', function ()
         'conversation_id' => $conversation->id,
         'phone' => '0243333444',
         'data_size' => 10,
+        'issue' => 'Wrong package delivered',
     ]);
 
     $thankYou = Message::query()
@@ -161,18 +209,47 @@ test('valid intake thanks customer and dispatches ai when ai is on', function ()
     Queue::assertPushed(ProcessAiFallback::class);
 });
 
-test('closing a conversation resets intake status', function () {
+test('invalid issue choice re-asks without completing', function () {
+    Queue::fake();
+
+    $auth = app(CustomerAuthService::class);
+    $customer = $auth->findOrCreateCustomer('0244000011', 'Bad Choice');
+    $auth->login($customer);
+    $conversation = $customer->conversation;
+
+    completePhoneAndData($this, $conversation);
+
+    $this->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'something else',
+    ])->assertOk();
+
+    $conversation->refresh();
+
+    expect($conversation->intake_status)->toBe(IntakeStatus::AwaitingIssue)
+        ->and(SupportIntake::query()->where('conversation_id', $conversation->id)->count())->toBe(0);
+
+    $correction = Message::query()
+        ->where('conversation_id', $conversation->id)
+        ->where('sender_type', MessageSenderType::System->value)
+        ->latest('id')
+        ->first();
+
+    expect($correction?->body)->toContain('1 or 2');
+});
+
+test('closing a conversation resets intake status and draft fields', function () {
     $auth = app(CustomerAuthService::class);
     $customer = $auth->findOrCreateCustomer('0244000005', 'Reset Intake');
     $auth->login($customer);
     $conversation = $customer->conversation;
 
-    $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => 'Hi',
-    ])->assertOk();
+    completePhoneAndData($this, $conversation, '0245555666 3');
+
+    expect($conversation->fresh()->intake_status)->toBe(IntakeStatus::AwaitingIssue)
+        ->and($conversation->fresh()->intake_phone)->toBe('0245555666');
 
     $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => '0245555666 3',
+        'body' => '1',
     ])->assertOk();
 
     expect($conversation->fresh()->intake_status)->toBe(IntakeStatus::Completed);
@@ -183,21 +260,23 @@ test('closing a conversation resets intake status', function () {
         ->postJson("/admin/chats/{$conversation->id}/close")
         ->assertOk();
 
-    expect($conversation->fresh()->intake_status)->toBe(IntakeStatus::Pending);
+    $conversation->refresh();
+
+    expect($conversation->intake_status)->toBe(IntakeStatus::Pending)
+        ->and($conversation->intake_phone)->toBeNull()
+        ->and($conversation->intake_data_size)->toBeNull();
 });
 
-test('admin can list and export intakes', function () {
+test('admin can list and export intakes with three columns', function () {
     $auth = app(CustomerAuthService::class);
     $customer = $auth->findOrCreateCustomer('0244000006', 'Export Customer');
     $auth->login($customer);
     $conversation = $customer->conversation;
 
-    $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => 'Hi',
-    ])->assertOk();
+    completePhoneAndData($this, $conversation, '0247777888 8');
 
     $this->postJson("/support/conversations/{$conversation->id}/messages", [
-        'body' => '0247777888 8',
+        'body' => '1',
     ])->assertOk();
 
     $admin = User::query()->where('role', UserRole::Admin)->first();
@@ -209,15 +288,22 @@ test('admin can list and export intakes', function () {
             ->component('admin/intakes')
             ->has('intakes.data', 1)
             ->where('intakes.data.0.phone', '0247777888')
-            ->where('intakes.data.0.data_size', 8));
+            ->where('intakes.data.0.data_size', 8)
+            ->where('intakes.data.0.issue', IntakeAutoReplyService::BOUGHT_NOT_RECEIVED));
 
     $export = $this->actingAs($admin)
         ->get('/admin/intakes/export')
         ->assertOk();
 
-    $export->assertHeader('content-disposition');
-    expect($export->streamedContent())->toContain('0247777888')
-        ->and($export->streamedContent())->toContain('8');
+    $csv = $export->streamedContent();
+    $lines = array_values(array_filter(preg_split("/\r\n|\n|\r/", trim($csv)) ?: []));
+
+    expect($lines[0])->toBe('phone,data_size,main_issue')
+        ->and($csv)->toContain('0247777888')
+        ->and($csv)->toContain('8')
+        ->and($csv)->toContain(IntakeAutoReplyService::BOUGHT_NOT_RECEIVED)
+        ->and($csv)->not->toContain('conversation_id')
+        ->and($csv)->not->toContain('customer_name');
 });
 
 test('agent cannot access intakes module', function () {

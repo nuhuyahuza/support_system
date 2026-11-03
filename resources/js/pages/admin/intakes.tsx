@@ -9,6 +9,7 @@ type IntakeRow = {
     id: number;
     phone: string;
     data_size: number;
+    issue: string | null;
     created_at: string | null;
     conversation_id: number;
     customer: {
@@ -46,7 +47,7 @@ export default function AdminIntakes({ search: initialSearch, intakes }: Props) 
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <AdminPageHeader
                     title="Intakes"
-                    description="Reported phone numbers and data sizes collected before agent or AI handoff."
+                    description="Reported phone numbers, data sizes, and main issues collected before agent or AI handoff."
                     actions={
                         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                             <form onSubmit={onSearch} className="relative w-full sm:w-72">
@@ -54,7 +55,7 @@ export default function AdminIntakes({ search: initialSearch, intakes }: Props) 
                                 <Input
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
-                                    placeholder="Search phone or customer"
+                                    placeholder="Search phone, issue, or customer"
                                     className="rounded-full border-border/70 bg-[var(--ops-surface)] pl-9 backdrop-blur"
                                 />
                             </form>
@@ -76,11 +77,12 @@ export default function AdminIntakes({ search: initialSearch, intakes }: Props) 
                         </p>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[760px] text-left text-sm">
+                        <table className="w-full min-w-[860px] text-left text-sm">
                             <thead className="bg-muted/40 text-muted-foreground">
                                 <tr>
                                     <th className="px-5 py-3 font-medium">Phone</th>
                                     <th className="px-3 py-3 font-medium">Data size</th>
+                                    <th className="px-3 py-3 font-medium">Main issue</th>
                                     <th className="px-3 py-3 font-medium">Customer</th>
                                     <th className="px-3 py-3 font-medium">Submitted</th>
                                     <th className="px-5 py-3 font-medium">Actions</th>
@@ -89,7 +91,7 @@ export default function AdminIntakes({ search: initialSearch, intakes }: Props) 
                             <tbody>
                                 {intakes.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-5 py-16 text-center text-muted-foreground">
+                                        <td colSpan={6} className="px-5 py-16 text-center text-muted-foreground">
                                             <ClipboardList className="mx-auto mb-2 size-8 opacity-40" />
                                             No intakes found.
                                         </td>
@@ -104,6 +106,9 @@ export default function AdminIntakes({ search: initialSearch, intakes }: Props) 
                                                 {intake.phone}
                                             </td>
                                             <td className="px-3 py-3.5">{intake.data_size} GB</td>
+                                            <td className="max-w-[240px] px-3 py-3.5 text-[var(--ops-ink)]">
+                                                <p className="line-clamp-2">{intake.issue || '—'}</p>
+                                            </td>
                                             <td className="px-3 py-3.5">
                                                 {intake.customer ? (
                                                     <div>

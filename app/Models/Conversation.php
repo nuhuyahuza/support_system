@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property ConversationStatus $status
  * @property bool $ai_active
  * @property IntakeStatus $intake_status
+ * @property string|null $intake_phone
+ * @property int|null $intake_data_size
  * @property Carbon|null $last_message_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -33,6 +35,8 @@ class Conversation extends Model
         'status',
         'ai_active',
         'intake_status',
+        'intake_phone',
+        'intake_data_size',
         'last_message_at',
     ];
 
@@ -42,6 +46,7 @@ class Conversation extends Model
             'status' => ConversationStatus::class,
             'ai_active' => 'boolean',
             'intake_status' => IntakeStatus::class,
+            'intake_data_size' => 'integer',
             'last_message_at' => 'datetime',
         ];
     }

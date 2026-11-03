@@ -174,6 +174,8 @@ class ConversationController extends Controller
         $conversation->update([
             'status' => ConversationStatus::Open,
             'intake_status' => IntakeStatus::Pending,
+            'intake_phone' => null,
+            'intake_data_size' => null,
         ]);
 
         return response()->json(['ok' => true]);

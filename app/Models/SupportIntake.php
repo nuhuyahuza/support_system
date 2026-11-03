@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
  * @property int $conversation_id
  * @property string $phone
  * @property int $data_size
+ * @property string|null $issue
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -20,6 +21,7 @@ class SupportIntake extends Model
         'conversation_id',
         'phone',
         'data_size',
+        'issue',
     ];
 
     protected function casts(): array

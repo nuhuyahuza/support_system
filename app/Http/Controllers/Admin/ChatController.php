@@ -200,6 +200,8 @@ class ChatController extends Controller
             'status' => ConversationStatus::Closed,
             'ai_active' => false,
             'intake_status' => IntakeStatus::Pending,
+            'intake_phone' => null,
+            'intake_data_size' => null,
         ]);
 
         return response()->json(['ok' => true]);

@@ -20,6 +20,7 @@ class IntakeController extends Controller
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('phone', 'like', "%{$search}%")
+                        ->orWhere('issue', 'like', "%{$search}%")
                         ->orWhereHas('conversation.customer', function ($customerQuery) use ($search) {
                             $customerQuery->where('name', 'like', "%{$search}%")
                                 ->orWhere('phone', 'like', "%{$search}%");
@@ -33,6 +34,7 @@ class IntakeController extends Controller
                 'id' => $intake->id,
                 'phone' => $intake->phone,
                 'data_size' => $intake->data_size,
+                'issue' => $intake->issue,
                 'created_at' => optional($intake->created_at)?->toIso8601String(),
                 'conversation_id' => $intake->conversation_id,
                 'customer' => $intake->conversation?->customer
@@ -59,13 +61,13 @@ class IntakeController extends Controller
         return response()->streamDownload(function () use ($search) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, ['id', 'conversation_id', 'phone', 'data_size', 'customer_name', 'customer_login_phone', 'created_at']);
+            fputcsv($handle, ['phone', 'data_size', 'main_issue']);
 
             SupportIntake::query()
-                ->with(['conversation.customer:id,name,phone'])
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($q) use ($search) {
                         $q->where('phone', 'like', "%{$search}%")
+                            ->orWhere('issue', 'like', "%{$search}%")
                             ->orWhereHas('conversation.customer', function ($customerQuery) use ($search) {
                                 $customerQuery->where('name', 'like', "%{$search}%")
                                     ->orWhere('phone', 'like', "%{$search}%");
@@ -76,13 +78,9 @@ class IntakeController extends Controller
                 ->chunk(200, function ($rows) use ($handle) {
                     foreach ($rows as $intake) {
                         fputcsv($handle, [
-                            $intake->id,
-                            $intake->conversation_id,
                             $intake->phone,
                             $intake->data_size,
-                            $intake->conversation?->customer?->name,
-                            $intake->conversation?->customer?->phone,
-                            optional($intake->created_at)?->toIso8601String(),
+                            $intake->issue,
                         ]);
                     }
                 });
