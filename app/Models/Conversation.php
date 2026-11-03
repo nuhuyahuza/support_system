@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ConversationStatus;
+use App\Enums\IntakeStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $assigned_agent_id
  * @property ConversationStatus $status
  * @property bool $ai_active
+ * @property IntakeStatus $intake_status
  * @property Carbon|null $last_message_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -30,6 +32,7 @@ class Conversation extends Model
         'assigned_agent_id',
         'status',
         'ai_active',
+        'intake_status',
         'last_message_at',
     ];
 
@@ -38,6 +41,7 @@ class Conversation extends Model
         return [
             'status' => ConversationStatus::class,
             'ai_active' => 'boolean',
+            'intake_status' => IntakeStatus::class,
             'last_message_at' => 'datetime',
         ];
     }
@@ -55,6 +59,11 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function intakes(): HasMany
+    {
+        return $this->hasMany(SupportIntake::class);
     }
 
     public function latestMessage(): HasOne

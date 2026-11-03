@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\ConversationController as AdminConversationController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\IntakeController as AdminIntakeController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Customer\AuthController as CustomerAuthController;
 use App\Http\Controllers\Customer\SupportController;
@@ -90,6 +91,9 @@ Route::middleware(['auth', EnsureStaff::class])->prefix('admin')->name('admin.')
     Route::middleware(EnsureAdmin::class)->group(function () {
         Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
         Route::put('/customers/{customer}', [AdminCustomerController::class, 'update'])->name('customers.update');
+
+        Route::get('/intakes', [AdminIntakeController::class, 'index'])->name('intakes.index');
+        Route::get('/intakes/export', [AdminIntakeController::class, 'export'])->name('intakes.export');
 
         Route::get('/agents', [AdminAgentController::class, 'index'])->name('agents.index');
         Route::post('/agents', [AdminAgentController::class, 'store'])->name('agents.store');

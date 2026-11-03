@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    ClipboardList,
     Headphones,
     LayoutDashboard,
     MessageSquare,
@@ -40,6 +41,11 @@ export function AppSidebar() {
                       title: 'Customers',
                       href: '/admin/customers',
                       icon: Users,
+                  } satisfies NavItem,
+                  {
+                      title: 'Intakes',
+                      href: '/admin/intakes',
+                      icon: ClipboardList,
                   } satisfies NavItem,
                   {
                       title: 'Agents',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\ConversationStatus;
+use App\Enums\IntakeStatus;
 use App\Enums\MessageSenderType;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
@@ -172,6 +173,7 @@ class ConversationController extends Controller
 
         $conversation->update([
             'status' => ConversationStatus::Open,
+            'intake_status' => IntakeStatus::Pending,
         ]);
 
         return response()->json(['ok' => true]);

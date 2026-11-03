@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\ConversationStatus;
+use App\Enums\IntakeStatus;
 use App\Enums\MessageSenderType;
 use App\Events\UserTyping;
 use App\Http\Controllers\Controller;
@@ -198,6 +199,7 @@ class ChatController extends Controller
         $conversation->update([
             'status' => ConversationStatus::Closed,
             'ai_active' => false,
+            'intake_status' => IntakeStatus::Pending,
         ]);
 
         return response()->json(['ok' => true]);

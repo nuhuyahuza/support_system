@@ -24,6 +24,7 @@ function isImageMessage(message: ChatMessage): boolean {
 export default function MessageBubble({ message, outgoing }: Props) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const isAi = message.sender_type === 'ai';
+    const isSystem = message.sender_type === 'system';
     const showImage = isImageMessage(message) && Boolean(message.attachment_url);
     const showFile = Boolean(message.attachment_url) && !showImage;
 
@@ -39,6 +40,9 @@ export default function MessageBubble({ message, outgoing }: Props) {
             >
                 {isAi && (
                     <div className="mb-0.5 text-[11px] font-medium text-[#02a698]">AI Assistant</div>
+                )}
+                {isSystem && (
+                    <div className="mb-0.5 text-[11px] font-medium text-[#02a698]">Support</div>
                 )}
 
                 {showImage && (

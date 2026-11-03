@@ -65,7 +65,11 @@ test('agent deliver endpoint sets delivered_at without read_at', function () {
         'body' => 'Need help',
     ])->assertOk();
 
-    $message = Message::query()->where('conversation_id', $conversation->id)->latest('id')->first();
+    $message = Message::query()
+        ->where('conversation_id', $conversation->id)
+        ->where('sender_type', 'customer')
+        ->latest('id')
+        ->first();
     expect($message->delivered_at)->toBeNull()
         ->and($message->read_at)->toBeNull();
 
@@ -92,7 +96,11 @@ test('marking messages read also sets delivered_at', function () {
         'body' => 'Please reply',
     ])->assertOk();
 
-    $message = Message::query()->where('conversation_id', $conversation->id)->latest('id')->first();
+    $message = Message::query()
+        ->where('conversation_id', $conversation->id)
+        ->where('sender_type', 'customer')
+        ->latest('id')
+        ->first();
 
     $agent = User::query()->where('role', UserRole::Agent)->first();
 
@@ -141,7 +149,11 @@ test('message poll returns receipt updates for pending outbound ids', function (
         'body' => 'Waiting for ticks',
     ])->assertOk();
 
-    $message = Message::query()->where('conversation_id', $conversation->id)->latest('id')->first();
+    $message = Message::query()
+        ->where('conversation_id', $conversation->id)
+        ->where('sender_type', 'customer')
+        ->latest('id')
+        ->first();
 
     $agent = User::query()->where('role', UserRole::Agent)->first();
     $this->actingAs($agent)
@@ -150,7 +162,9 @@ test('message poll returns receipt updates for pending outbound ids', function (
 
     $auth->login($customer);
 
-    $this->getJson("/support/conversations/{$conversation->id}/messages?after={$message->id}&pending={$message->id}")
+    $afterId = Message::query()->where('conversation_id', $conversation->id)->max('id');
+
+    $this->getJson("/support/conversations/{$conversation->id}/messages?after={$afterId}&pending={$message->id}")
         ->assertOk()
         ->assertJsonPath('receipts.0.id', $message->id)
         ->assertJsonPath('messages', [])
@@ -178,8 +192,16 @@ test('opening inbox delivers pending customer messages without reading inactive 
         'body' => 'From B',
     ])->assertOk();
 
-    $messageA = Message::query()->where('conversation_id', $customerA->conversation->id)->latest('id')->first();
-    $messageB = Message::query()->where('conversation_id', $customerB->conversation->id)->latest('id')->first();
+    $messageA = Message::query()
+        ->where('conversation_id', $customerA->conversation->id)
+        ->where('sender_type', 'customer')
+        ->latest('id')
+        ->first();
+    $messageB = Message::query()
+        ->where('conversation_id', $customerB->conversation->id)
+        ->where('sender_type', 'customer')
+        ->latest('id')
+        ->first();
 
     $agent = User::query()->where('role', UserRole::Agent)->first();
 

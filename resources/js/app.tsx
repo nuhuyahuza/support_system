@@ -15,6 +15,7 @@ const dashboardAdminPages = new Set([
     'admin/dashboard',
     'admin/conversations',
     'admin/customers',
+    'admin/intakes',
     'admin/agents',
     'admin/settings',
 ]);

@@ -94,8 +94,13 @@ class ChatService
         SafeBroadcast::event(new MessageSent($message), toOthers: true);
 
         if ($senderType === MessageSenderType::Customer) {
-            ProcessAiFallback::dispatch($conversation->id, $message->id)
-                ->delay(now()->addSeconds(2));
+            $allowAi = app(IntakeAutoReplyService::class)
+                ->handleAfterCustomerMessage($conversation->fresh(), $message);
+
+            if ($allowAi) {
+                ProcessAiFallback::dispatch($conversation->id, $message->id)
+                    ->delay(now()->addSeconds(2));
+            }
         }
 
         return $message;
@@ -114,6 +119,27 @@ class ChatService
         $conversation->update([
             'last_message_at' => now(),
             'ai_active' => true,
+            'status' => ConversationStatus::Open,
+        ]);
+
+        $message->load('sender:id,name,role');
+        SafeBroadcast::event(new MessageSent($message), toOthers: true);
+
+        return $message;
+    }
+
+    public function sendSystem(Conversation $conversation, string $body): Message
+    {
+        $message = Message::query()->create([
+            'conversation_id' => $conversation->id,
+            'sender_id' => null,
+            'sender_type' => MessageSenderType::System,
+            'body' => $body,
+            'type' => MessageType::Text,
+        ]);
+
+        $conversation->update([
+            'last_message_at' => now(),
             'status' => ConversationStatus::Open,
         ]);
 
@@ -203,6 +229,7 @@ class ChatService
                 $unreadQuery->whereIn('sender_type', [
                     MessageSenderType::Agent->value,
                     MessageSenderType::Ai->value,
+                    MessageSenderType::System->value,
                 ]);
             } else {
                 $unreadQuery->where('sender_type', MessageSenderType::Customer->value);
