@@ -146,9 +146,6 @@ export default function CustomerLogin({
                     </Form>
                 )}
 
-                <p className="mt-6 text-center text-xs text-[var(--wa-muted)]">
-                    Staff? <a href="/admin/login" className="text-[var(--wa-accent)] underline">Sign in here</a>
-                </p>
             </div>
         </ChatShell>
     );
