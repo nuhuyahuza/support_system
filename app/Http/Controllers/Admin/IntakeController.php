@@ -7,6 +7,8 @@ use App\Models\SupportIntake;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class IntakeController extends Controller
@@ -56,12 +58,15 @@ class IntakeController extends Controller
     {
         $search = $request->string('search')->toString();
 
-        $filename = 'support-intakes-'.now()->format('Y-m-d-His').'.csv';
+        $filename = 'support-intakes-'.now()->format('Y-m-d-His').'.xlsx';
 
         return response()->streamDownload(function () use ($search) {
-            $handle = fopen('php://output', 'w');
+            $spreadsheet = new Spreadsheet;
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Intakes');
+            $sheet->fromArray(['phone', 'data_size', 'main_issue'], null, 'A1');
 
-            fputcsv($handle, ['phone', 'data_size', 'main_issue']);
+            $row = 2;
 
             SupportIntake::query()
                 ->when($search !== '', function ($query) use ($search) {
@@ -75,19 +80,22 @@ class IntakeController extends Controller
                     });
                 })
                 ->orderByDesc('created_at')
-                ->chunk(200, function ($rows) use ($handle) {
+                ->chunk(200, function ($rows) use ($sheet, &$row) {
                     foreach ($rows as $intake) {
-                        fputcsv($handle, [
+                        $sheet->fromArray([
                             $intake->phone,
                             $intake->data_size,
                             $intake->issue,
-                        ]);
+                        ], null, 'A'.$row);
+                        $row++;
                     }
                 });
 
-            fclose($handle);
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+            $spreadsheet->disconnectWorksheets();
         }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 }

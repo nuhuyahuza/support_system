@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Auth\CustomerAuthService;
 use App\Services\Chat\IntakeAutoReplyService;
 use Illuminate\Support\Facades\Queue;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 beforeEach(function () {
     $this->seed();
@@ -295,15 +296,24 @@ test('admin can list and export intakes with three columns', function () {
         ->get('/admin/intakes/export')
         ->assertOk();
 
-    $csv = $export->streamedContent();
-    $lines = array_values(array_filter(preg_split("/\r\n|\n|\r/", trim($csv)) ?: []));
+    $export->assertHeader('content-disposition');
+    expect($export->headers->get('content-type'))->toContain(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
 
-    expect($lines[0])->toBe('phone,data_size,main_issue')
-        ->and($csv)->toContain('0247777888')
-        ->and($csv)->toContain('8')
-        ->and($csv)->toContain(IntakeAutoReplyService::BOUGHT_NOT_RECEIVED)
-        ->and($csv)->not->toContain('conversation_id')
-        ->and($csv)->not->toContain('customer_name');
+    $tempPath = tempnam(sys_get_temp_dir(), 'intake-export-').'.xlsx';
+    file_put_contents($tempPath, $export->streamedContent());
+
+    $sheet = IOFactory::load($tempPath)->getActiveSheet();
+    $rows = $sheet->toArray();
+
+    @unlink($tempPath);
+
+    expect($rows[0])->toBe(['phone', 'data_size', 'main_issue'])
+        ->and($rows[1][0])->toBe('0247777888')
+        ->and((int) $rows[1][1])->toBe(8)
+        ->and($rows[1][2])->toBe(IntakeAutoReplyService::BOUGHT_NOT_RECEIVED)
+        ->and(count($rows[0]))->toBe(3);
 });
 
 test('agent cannot access intakes module', function () {

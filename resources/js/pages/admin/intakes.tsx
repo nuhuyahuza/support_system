@@ -62,7 +62,7 @@ export default function AdminIntakes({ search: initialSearch, intakes }: Props) 
                             <Button asChild variant="outline" className="rounded-full">
                                 <a href={exportUrl}>
                                     <Download className="size-4" />
-                                    Export CSV
+                                    Export Excel
                                 </a>
                             </Button>
                         </div>
