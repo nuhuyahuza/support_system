@@ -61,7 +61,12 @@ class SupportController extends Controller
             ->get()
             ->map(fn (Message $message) => $chat->serializeMessage($message));
 
-        return response()->json(['messages' => $messages]);
+        $pending = array_filter(explode(',', $request->string('pending')->toString()));
+
+        return response()->json([
+            'messages' => $messages,
+            'receipts' => $chat->serializeReceipts($conversation, $pending),
+        ]);
     }
 
     public function storeMessage(Request $request, Conversation $conversation, ChatService $chat): JsonResponse

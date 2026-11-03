@@ -8,8 +8,21 @@ type Props = {
     outgoing: boolean;
 };
 
+function isImageMessage(message: ChatMessage): boolean {
+    if (message.type === 'image') {
+        return true;
+    }
+
+    return Boolean(
+        message.attachment_url &&
+            /\.(jpe?g|png|gif|webp|bmp|heic|heif|svg)$/i.test(message.attachment_name ?? ''),
+    );
+}
+
 export default function MessageBubble({ message, outgoing }: Props) {
     const isAi = message.sender_type === 'ai';
+    const showImage = isImageMessage(message) && Boolean(message.attachment_url);
+    const showFile = Boolean(message.attachment_url) && !showImage;
 
     return (
         <div className={cn('flex w-full', outgoing ? 'justify-end' : 'justify-start')}>
@@ -25,19 +38,20 @@ export default function MessageBubble({ message, outgoing }: Props) {
                     <div className="mb-0.5 text-[11px] font-medium text-[#02a698]">AI Assistant</div>
                 )}
 
-                {message.type === 'image' && message.attachment_url && (
-                    <a href={message.attachment_url} target="_blank" rel="noreferrer" className="mb-1 block">
+                {showImage && (
+                    <a href={message.attachment_url!} target="_blank" rel="noreferrer" className="mb-1 block">
                         <img
-                            src={message.attachment_url}
+                            src={message.attachment_url!}
                             alt={message.attachment_name ?? 'attachment'}
-                            className="max-h-64 rounded-md object-cover"
+                            className="max-h-64 w-full rounded-md object-cover"
+                            loading="lazy"
                         />
                     </a>
                 )}
 
-                {message.type === 'file' && message.attachment_url && (
+                {showFile && (
                     <a
-                        href={message.attachment_url}
+                        href={message.attachment_url!}
                         target="_blank"
                         rel="noreferrer"
                         className="mb-1 block text-sm underline"

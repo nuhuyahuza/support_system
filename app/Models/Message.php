@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -69,6 +68,21 @@ class Message extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->attachment_path);
+        // Root-relative so images work even when APP_URL host/scheme is wrong
+        // (common on cPanel / Cloudflare HTTPS setups).
+        return '/storage/'.ltrim($this->attachment_path, '/');
+    }
+
+    public function isImageAttachment(): bool
+    {
+        if ($this->type === MessageType::Image) {
+            return true;
+        }
+
+        if (! $this->attachment_name) {
+            return false;
+        }
+
+        return (bool) preg_match('/\.(jpe?g|png|gif|webp|bmp|heic|heif|svg)$/i', $this->attachment_name);
     }
 }

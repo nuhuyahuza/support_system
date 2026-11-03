@@ -128,6 +128,37 @@ test('message serialization includes delivered_at', function () {
         ]);
 });
 
+test('message poll returns receipt updates for pending outbound ids', function () {
+    $auth = app(CustomerAuthService::class);
+    $customer = $auth->findOrCreateCustomer('0244666777', 'Receipt Poll Customer');
+    $auth->login($customer);
+
+    $conversation = $customer->conversation;
+
+    $this->postJson("/support/conversations/{$conversation->id}/messages", [
+        'body' => 'Waiting for ticks',
+    ])->assertOk();
+
+    $message = Message::query()->where('conversation_id', $conversation->id)->latest('id')->first();
+
+    $agent = User::query()->where('role', UserRole::Agent)->first();
+    $this->actingAs($agent)
+        ->postJson("/admin/chats/{$conversation->id}/read")
+        ->assertOk();
+
+    $auth->login($customer);
+
+    $this->getJson("/support/conversations/{$conversation->id}/messages?after={$message->id}&pending={$message->id}")
+        ->assertOk()
+        ->assertJsonPath('receipts.0.id', $message->id)
+        ->assertJsonPath('messages', [])
+        ->assertJson(fn ($json) => $json
+            ->where('receipts.0.id', $message->id)
+            ->whereType('receipts.0.delivered_at', 'string')
+            ->whereType('receipts.0.read_at', 'string')
+            ->etc());
+});
+
 test('opening inbox delivers pending customer messages without reading inactive chats', function () {
     $auth = app(CustomerAuthService::class);
     $customerA = $auth->findOrCreateCustomer('0244777001', 'Inbox A');

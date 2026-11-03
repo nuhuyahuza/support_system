@@ -45,7 +45,11 @@ class ChatService
             $path = $attachment->store('chat-attachments/'.$conversation->id, 'public');
             $name = $attachment->getClientOriginalName();
             $mime = $attachment->getMimeType() ?? '';
-            $type = str_starts_with($mime, 'image/') ? MessageType::Image : MessageType::File;
+            $extension = strtolower($attachment->getClientOriginalExtension());
+            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'svg'];
+            $type = str_starts_with($mime, 'image/') || in_array($extension, $imageExtensions, true)
+                ? MessageType::Image
+                : MessageType::File;
         }
 
         if (! $body && ! $path) {
@@ -252,7 +256,9 @@ class ChatService
                 'role' => $message->sender->role->value,
             ] : null,
             'body' => $message->body,
-            'type' => $message->type->value,
+            'type' => $message->isImageAttachment()
+                ? MessageType::Image->value
+                : $message->type->value,
             'attachment_path' => $message->attachment_path,
             'attachment_name' => $message->attachment_name,
             'attachment_url' => $message->attachment_url,
@@ -260,5 +266,34 @@ class ChatService
             'read_at' => $message->read_at?->toIso8601String(),
             'created_at' => $message->created_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * @param  list<int|string>  $pendingIds
+     * @return list<array{id: int, delivered_at: string|null, read_at: string|null}>
+     */
+    public function serializeReceipts(Conversation $conversation, array $pendingIds): array
+    {
+        $ids = collect($pendingIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
+        return Message::query()
+            ->where('conversation_id', $conversation->id)
+            ->whereIn('id', $ids)
+            ->get(['id', 'delivered_at', 'read_at'])
+            ->map(fn (Message $message) => [
+                'id' => $message->id,
+                'delivered_at' => $message->delivered_at?->toIso8601String(),
+                'read_at' => $message->read_at?->toIso8601String(),
+            ])
+            ->all();
     }
 }

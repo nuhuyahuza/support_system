@@ -67,6 +67,39 @@ export default function CustomerSupport({
     }, []);
 
     const lastMessageId = messages.reduce((max, message) => Math.max(max, message.id), 0);
+    const pendingReceiptIds = useMemo(
+        () =>
+            messages
+                .filter((message) => message.sender_type === 'customer' && !message.read_at)
+                .map((message) => message.id),
+        [messages],
+    );
+
+    const applyReceipts = useCallback(
+        (receipts: { id: number; delivered_at: string | null; read_at: string | null }[]) => {
+            if (receipts.length === 0) {
+                return;
+            }
+
+            const byId = new Map(receipts.map((receipt) => [receipt.id, receipt]));
+
+            setMessages((current) =>
+                current.map((message) => {
+                    const receipt = byId.get(message.id);
+                    if (!receipt) {
+                        return message;
+                    }
+
+                    return {
+                        ...message,
+                        delivered_at: receipt.delivered_at ?? message.delivered_at,
+                        read_at: receipt.read_at ?? message.read_at,
+                    };
+                }),
+            );
+        },
+        [],
+    );
 
     useConversationChannel(
         conversation.id,
@@ -101,6 +134,7 @@ export default function CustomerSupport({
                     ),
                 );
             },
+            onReceipts: applyReceipts,
             onTyping: ({ name, typing, user_id }) => {
                 if (user_id === conversation.customer.id) {
                     return;
@@ -111,6 +145,7 @@ export default function CustomerSupport({
         {
             pollUrl: `/support/conversations/${conversation.id}/messages`,
             lastMessageId,
+            pendingReceiptIds,
         },
     );
 

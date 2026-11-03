@@ -122,9 +122,12 @@ class ChatController extends Controller
             $chat->markRead($conversation, $request->user());
         }
 
+        $pending = array_filter(explode(',', $request->string('pending')->toString()));
+
         return response()->json([
             'conversation' => $chat->serializeConversation($conversation, $request->user()),
             'messages' => $messages,
+            'receipts' => $chat->serializeReceipts($conversation, $pending),
         ]);
     }
 

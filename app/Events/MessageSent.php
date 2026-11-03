@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Enums\MessageType;
 use App\Models\Message;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -45,7 +46,9 @@ class MessageSent implements ShouldBroadcastNow
                     'role' => $this->message->sender->role->value,
                 ] : null,
                 'body' => $this->message->body,
-                'type' => $this->message->type->value,
+                'type' => $this->message->isImageAttachment()
+                    ? MessageType::Image->value
+                    : $this->message->type->value,
                 'attachment_path' => $this->message->attachment_path,
                 'attachment_name' => $this->message->attachment_name,
                 'attachment_url' => $this->message->attachment_url,
